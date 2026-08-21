@@ -15,6 +15,7 @@ import { QuickActions } from "@/components/student/QuickActions";
 import { SkillGapSection } from "@/components/student/SkillGapSection";
 import { StudentModals } from "@/components/student/StudentModals";
 import { StudentNavbar } from "@/components/student/StudentNavbar";
+import { ProfileAnalyzer } from "@/components/site/ProfileAnalyzer";
 import {
   Application,
   Course,
@@ -237,6 +238,9 @@ function StudentDashboardPage() {
 
       {/* Global Footer */}
       <Footer />
+
+      {/* AI Career Profile Analyzer floating trigger for Student section */}
+      <ProfileAnalyzer />
     </div>
   );
 }

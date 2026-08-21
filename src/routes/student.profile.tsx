@@ -17,6 +17,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Footer } from "@/components/site/Footer";
 import { StudentNavbar } from "@/components/student/StudentNavbar";
+import { ProfileAnalyzer } from "@/components/site/ProfileAnalyzer";
 import {
   INITIAL_STUDENT_PROFILE,
   READINESS_BREAKDOWN,
@@ -269,6 +270,7 @@ function StudentProfilePage() {
       </main>
 
       <Footer />
+      <ProfileAnalyzer />
     </div>
   );
 }
