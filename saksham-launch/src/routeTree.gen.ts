@@ -21,8 +21,10 @@ import { Route as AdminVerificationsRouteImport } from './routes/admin.verificat
 import { Route as RecruiterCompanyRouteImport } from './routes/recruiter.company'
 import { Route as RecruiterDashboardRouteImport } from './routes/recruiter.dashboard'
 import { Route as RecruiterInterviewsRouteImport } from './routes/recruiter.interviews'
+import { Route as RecruiterOnboardingRouteImport } from './routes/recruiter.onboarding'
 import { Route as RecruiterShortlistedRouteImport } from './routes/recruiter.shortlisted'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
+import { Route as RegisterRecruiterRouteImport } from './routes/register.recruiter'
 import { Route as RegisterStudentRouteImport } from './routes/register.student'
 import { Route as StudentAiAssistantRouteImport } from './routes/student.ai-assistant'
 import { Route as StudentApplicationsRouteImport } from './routes/student.applications'
@@ -99,6 +101,11 @@ const RecruiterInterviewsRoute = RecruiterInterviewsRouteImport.update({
   path: '/recruiter/interviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecruiterOnboardingRoute = RecruiterOnboardingRouteImport.update({
+  id: '/recruiter/onboarding',
+  path: '/recruiter/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecruiterShortlistedRoute = RecruiterShortlistedRouteImport.update({
   id: '/recruiter/shortlisted',
   path: '/recruiter/shortlisted',
@@ -107,6 +114,11 @@ const RecruiterShortlistedRoute = RecruiterShortlistedRouteImport.update({
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
   id: '/register/',
   path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRecruiterRoute = RegisterRecruiterRouteImport.update({
+  id: '/register/recruiter',
+  path: '/register/recruiter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterStudentRoute = RegisterStudentRouteImport.update({
@@ -203,7 +215,9 @@ export interface FileRoutesByFullPath {
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
+  '/recruiter/onboarding': typeof RecruiterOnboardingRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
+  '/register/recruiter': typeof RegisterRecruiterRoute
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -234,7 +248,9 @@ export interface FileRoutesByTo {
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
+  '/recruiter/onboarding': typeof RecruiterOnboardingRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
+  '/register/recruiter': typeof RegisterRecruiterRoute
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -266,7 +282,9 @@ export interface FileRoutesById {
   '/recruiter/company': typeof RecruiterCompanyRoute
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
+  '/recruiter/onboarding': typeof RecruiterOnboardingRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
+  '/register/recruiter': typeof RegisterRecruiterRoute
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -299,7 +317,9 @@ export interface FileRouteTypes {
     | '/recruiter/company'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
+    | '/recruiter/onboarding'
     | '/recruiter/shortlisted'
+    | '/register/recruiter'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -330,7 +350,9 @@ export interface FileRouteTypes {
     | '/recruiter/company'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
+    | '/recruiter/onboarding'
     | '/recruiter/shortlisted'
+    | '/register/recruiter'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -361,7 +383,9 @@ export interface FileRouteTypes {
     | '/recruiter/company'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
+    | '/recruiter/onboarding'
     | '/recruiter/shortlisted'
+    | '/register/recruiter'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -393,7 +417,9 @@ export interface RootRouteChildren {
   RecruiterCompanyRoute: typeof RecruiterCompanyRoute
   RecruiterDashboardRoute: typeof RecruiterDashboardRoute
   RecruiterInterviewsRoute: typeof RecruiterInterviewsRoute
+  RecruiterOnboardingRoute: typeof RecruiterOnboardingRoute
   RecruiterShortlistedRoute: typeof RecruiterShortlistedRoute
+  RegisterRecruiterRoute: typeof RegisterRecruiterRoute
   RegisterStudentRoute: typeof RegisterStudentRoute
   StudentAiAssistantRoute: typeof StudentAiAssistantRoute
   StudentApplicationsRoute: typeof StudentApplicationsRoute
@@ -498,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterInterviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recruiter/onboarding': {
+      id: '/recruiter/onboarding'
+      path: '/recruiter/onboarding'
+      fullPath: '/recruiter/onboarding'
+      preLoaderRoute: typeof RecruiterOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recruiter/shortlisted': {
       id: '/recruiter/shortlisted'
       path: '/recruiter/shortlisted'
@@ -510,6 +543,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register/'
       preLoaderRoute: typeof RegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register/recruiter': {
+      id: '/register/recruiter'
+      path: '/register/recruiter'
+      fullPath: '/register/recruiter'
+      preLoaderRoute: typeof RegisterRecruiterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register/student': {
@@ -633,7 +673,9 @@ const rootRouteChildren: RootRouteChildren = {
   RecruiterCompanyRoute: RecruiterCompanyRoute,
   RecruiterDashboardRoute: RecruiterDashboardRoute,
   RecruiterInterviewsRoute: RecruiterInterviewsRoute,
+  RecruiterOnboardingRoute: RecruiterOnboardingRoute,
   RecruiterShortlistedRoute: RecruiterShortlistedRoute,
+  RegisterRecruiterRoute: RegisterRecruiterRoute,
   RegisterStudentRoute: RegisterStudentRoute,
   StudentAiAssistantRoute: StudentAiAssistantRoute,
   StudentApplicationsRoute: StudentApplicationsRoute,

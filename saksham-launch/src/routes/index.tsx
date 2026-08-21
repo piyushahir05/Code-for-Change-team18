@@ -24,7 +24,6 @@ import {
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Counter, Floating, Reveal } from "@/components/site/motion-primitives";
-import { ProfileAnalyzer } from "@/components/site/ProfileAnalyzer";
 import heroStudent from "@/assets/hero-student.jpg";
 import workshop from "@/assets/workshop.jpg";
 import mentorGuiding from "@/assets/mentor-guiding.jpg";
@@ -429,8 +428,6 @@ function Home() {
         <FinalCta />
       </main>
       <Footer />
-      {/* AI Career Profile Analyzer — floating button + sliding panel */}
-      <ProfileAnalyzer />
     </div>
   );
 }
