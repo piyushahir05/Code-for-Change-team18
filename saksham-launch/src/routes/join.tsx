@@ -101,6 +101,14 @@ function JoinPage() {
                   {o.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
+              ) : o.title === "Industry" ? (
+                <Link
+                  to="/register/recruiter"
+                  className="group mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-deep"
+                >
+                  {o.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
               ) : (
                 <button
                   type="button"

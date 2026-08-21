@@ -24,6 +24,7 @@ import {
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Counter, Floating, Reveal } from "@/components/site/motion-primitives";
+import { ProfileAnalyzer } from "@/components/site/ProfileAnalyzer";
 import heroStudent from "@/assets/hero-student.jpg";
 import workshop from "@/assets/workshop.jpg";
 import mentorGuiding from "@/assets/mentor-guiding.jpg";
@@ -102,7 +103,7 @@ const audiences = [
     title: "Students & Graduates",
     text: "Learn, build your profile, find mentors and discover career opportunities.",
     cta: "Join as Student",
-    to: "/join" as const,
+    to: "/register/student" as const,
   },
   {
     icon: HandHeart,
@@ -116,7 +117,7 @@ const audiences = [
     title: "Industry Partners",
     text: "Discover emerging ITI talent and create meaningful employment opportunities.",
     cta: "Partner With Us",
-    to: "/join" as const,
+    to: "/register/recruiter" as const,
   },
   {
     icon: Landmark,
@@ -428,6 +429,8 @@ function Home() {
         <FinalCta />
       </main>
       <Footer />
+      {/* AI Career Profile Analyzer — floating button + sliding panel */}
+      <ProfileAnalyzer />
     </div>
   );
 }
@@ -1348,7 +1351,7 @@ function Partners() {
 
         <div className="mt-12 text-center">
           <Link
-            to="/join"
+            to="/register/recruiter"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-deep"
           >
             Become an Industry Partner <ArrowRight className="h-4 w-4" />
