@@ -2,11 +2,19 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import Optional
+import logging
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 SUPABASE_URL: str = os.environ.get("SUPABASE_URL", "")
-SUPABASE_ANON_KEY: str = os.environ.get("SUPABASE_ANON_KEY", "")
+# Accept both SUPABASE_ANON_KEY (standard) and SUPABASE_KEY (legacy alias)
+SUPABASE_ANON_KEY: str = (
+    os.environ.get("SUPABASE_ANON_KEY")
+    or os.environ.get("SUPABASE_KEY")
+    or ""
+)
 
 # ── Dynamic Demo Mock Data ───────────────────────────────────────────────────
 # If the user's database is empty or queries return no rows, we use these.

@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 
+// ── Supabase public credentials (anon key — safe to use client-side) ─────────
+const SUPABASE_URL = "https://espfnslpizfssuntxhah.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzcGZuc2xwaXpmc3N1bnR4aGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODgwNzMsImV4cCI6MjEwMjg2NDA3M30.lhWSQBlOa1mdL3mYRgTFZkBK5BKzveTsvrdzu0lsTgg";
+
 export interface Student {
   id: number;
   name: string;
@@ -8,6 +13,7 @@ export interface Student {
   career_readiness_score: number;
 }
 
+// ── Static fallback (used when Supabase table is empty or unreachable) ────────
 export const MOCK_STUDENTS: Student[] = [
   {
     id: 1,
@@ -39,45 +45,118 @@ export const MOCK_STUDENTS: Student[] = [
   },
 ];
 
+// ── Global singleton state shared across all hook consumers ───────────────────
 let globalActiveId = 1;
-const listeners = new Set<(id: number) => void>();
+let globalStudents: Student[] = MOCK_STUDENTS;
+const listeners = new Set<() => void>();
 
+function notifyAll() {
+  listeners.forEach((fn) => fn());
+}
+
+// ── Fetch student list from Supabase REST (student_profiles + users join) ─────
+async function fetchStudentsFromSupabase(): Promise<Student[]> {
+  try {
+    // First try the local FastAPI /api/students (which does the full join server-side)
+    const fastApiRes = await fetch("http://localhost:8000/api/students", {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (fastApiRes.ok) {
+      const data: Student[] = await fastApiRes.json();
+      if (data && data.length > 0) return data;
+    }
+  } catch {
+    // FastAPI backend is down — fall through to direct Supabase REST
+  }
+
+  try {
+    // Direct Supabase REST call — student_profiles joined with users
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/student_profiles?select=id,trade,career_goal,career_readiness_score,users(name)&order=id`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+
+    if (!res.ok) throw new Error(`Supabase REST error: ${res.status}`);
+    const rows = await res.json();
+
+    if (!rows || rows.length === 0) {
+      console.warn("Supabase student_profiles table is empty — using mock fallback.");
+      return MOCK_STUDENTS;
+    }
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      name: row.users?.name ?? `Student ${row.id}`,
+      trade: row.trade ?? "",
+      career_goal: row.career_goal ?? "",
+      career_readiness_score: row.career_readiness_score ?? 0,
+    }));
+  } catch (err) {
+    console.warn("Could not reach Supabase — using mock student list.", err);
+    return MOCK_STUDENTS;
+  }
+}
+
+// ── Initialize on first import ────────────────────────────────────────────────
+let initialized = false;
+
+async function initStudents() {
+  if (initialized) return;
+  initialized = true;
+
+  // Restore last active student from localStorage
+  const stored = localStorage.getItem("saksham_active_student_id");
+  if (stored) {
+    const parsed = parseInt(stored, 10);
+    if (!isNaN(parsed)) globalActiveId = parsed;
+  }
+
+  const fetched = await fetchStudentsFromSupabase();
+  globalStudents = fetched;
+
+  // If stored ID doesn't exist in fetched list, reset to first student
+  if (!globalStudents.find((s) => s.id === globalActiveId)) {
+    globalActiveId = globalStudents[0]?.id ?? 1;
+  }
+
+  notifyAll();
+}
+
+// Kick off the async init immediately when this module is first imported
+initStudents();
+
+// ── Hook ──────────────────────────────────────────────────────────────────────
 export function useActiveStudent() {
-  const [activeStudentId, setInnerId] = useState(globalActiveId);
+  const [, forceRender] = useState(0);
 
   useEffect(() => {
-    const handleUpdate = (id: number) => {
-      setInnerId(id);
-    };
-    listeners.add(handleUpdate);
+    const rerender = () => forceRender((n) => n + 1);
+    listeners.add(rerender);
     return () => {
-      listeners.delete(handleUpdate);
+      listeners.delete(rerender);
     };
   }, []);
 
   const setActiveStudentId = (id: number) => {
     globalActiveId = id;
     localStorage.setItem("saksham_active_student_id", String(id));
-    listeners.forEach((listener) => listener(id));
+    notifyAll();
   };
 
-  // Sync with localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem("saksham_active_student_id");
-    if (stored) {
-      const parsed = parseInt(stored, 10);
-      if (!isNaN(parsed) && parsed !== globalActiveId) {
-        setActiveStudentId(parsed);
-      }
-    }
-  }, []);
-
-  const activeStudent = MOCK_STUDENTS.find((s) => s.id === activeStudentId) || MOCK_STUDENTS[0];
+  const activeStudent =
+    globalStudents.find((s) => s.id === globalActiveId) ?? globalStudents[0] ?? MOCK_STUDENTS[0];
 
   return {
-    activeStudentId,
+    activeStudentId: globalActiveId,
     setActiveStudentId,
     activeStudent,
-    mockStudents: MOCK_STUDENTS,
+    mockStudents: globalStudents, // renamed but contains live OR mock data
   };
 }

@@ -16,9 +16,14 @@ import {
   CheckCircle2,
   ArrowUpRight
 } from "lucide-react";
-import { useActiveStudent, Student } from "@/hooks/useActiveStudent";
+import { useActiveStudent } from "@/hooks/useActiveStudent";
 
-// Local fallback database matching the backend seed/mock data
+// ── Supabase public credentials ───────────────────────────────────────────────
+const SUPABASE_URL = "https://espfnslpizfssuntxhah.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzcGZuc2xwaXpmc3N1bnR4aGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODgwNzMsImV4cCI6MjEwMjg2NDA3M30.lhWSQBlOa1mdL3mYRgTFZkBK5BKzveTsvrdzu0lsTgg";
+
+// ── Static offline fallback (mirrors ai_bot/database.py MOCK_STUDENTS) ────────
 const FALLBACK_PROFILES: Record<number, any> = {
   1: {
     name: "Aarav Patil",
@@ -29,7 +34,7 @@ const FALLBACK_PROFILES: Record<number, any> = {
     existing_skills: ["Electrical Wiring", "Motor Control", "Electrical Safety", "Industrial Wiring"],
     interests: ["Electrical Maintenance", "PLC", "Renewable Energy"],
     location: "Pune",
-    iti: "Government ITI Pune"
+    iti: "Government ITI Pune",
   },
   2: {
     name: "Saanvi Jadhav",
@@ -40,7 +45,7 @@ const FALLBACK_PROFILES: Record<number, any> = {
     existing_skills: ["Mechanical Assembly", "Measurement & Gauges", "Preventive Maintenance", "Technical Drawings"],
     interests: ["Quality Inspection", "CNC", "Plant Maintenance"],
     location: "Nashik",
-    iti: "Government ITI Nashik"
+    iti: "Government ITI Nashik",
   },
   3: {
     name: "Rohan Shinde",
@@ -51,7 +56,7 @@ const FALLBACK_PROFILES: Record<number, any> = {
     existing_skills: ["MIG Welding", "Welding Safety", "Fabrication", "Technical Drawings"],
     interests: ["Quality", "Fabrication", "Automotive Manufacturing"],
     location: "Nagpur",
-    iti: "Government ITI Nagpur"
+    iti: "Government ITI Nagpur",
   },
   4: {
     name: "Isha More",
@@ -62,9 +67,61 @@ const FALLBACK_PROFILES: Record<number, any> = {
     existing_skills: ["Data Entry", "Digital Literacy", "Computer Hardware", "Documentation"],
     interests: ["IT Support", "Data Operations", "Office Automation"],
     location: "Mumbai",
-    iti: "Government ITI Mumbai"
-  }
+    iti: "Government ITI Mumbai",
+  },
 };
+
+/**
+ * Fetch full student profile from Supabase REST API directly.
+ * Used when FastAPI backend is offline.
+ */
+async function fetchProfileFromSupabase(studentId: number): Promise<any | null> {
+  try {
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    };
+
+    // Fetch student_profiles row
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/student_profiles?id=eq.${studentId}&select=id,age,gender,location,iti,trade,education,experience,career_goal,preferred_industry,preferred_location,skill_confidence,profile_completion,career_readiness_score,preferred_language,users(name)&limit=1`,
+      { headers, signal: AbortSignal.timeout(5000) }
+    );
+    const profileRows = profileRes.ok ? await profileRes.json() : [];
+    if (!profileRows || profileRows.length === 0) return null;
+    const profile = profileRows[0];
+
+    // Fetch student_skills
+    const skillsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/student_skills?student_profile_id=eq.${studentId}&select=skill_name,is_gap`,
+      { headers, signal: AbortSignal.timeout(5000) }
+    );
+    const skillRows = skillsRes.ok ? await skillsRes.json() : [];
+
+    // Fetch student_interests
+    const interestsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/student_interests?student_profile_id=eq.${studentId}&select=interest`,
+      { headers, signal: AbortSignal.timeout(5000) }
+    );
+    const interestRows = interestsRes.ok ? await interestsRes.json() : [];
+
+    return {
+      student_id: studentId,
+      name: profile.users?.name ?? `Student ${studentId}`,
+      trade: profile.trade ?? "",
+      career_goal: profile.career_goal ?? "",
+      career_readiness_score: profile.career_readiness_score ?? 0,
+      skill_gaps: skillRows.filter((s: any) => s.is_gap).map((s: any) => s.skill_name),
+      existing_skills: skillRows.filter((s: any) => !s.is_gap).map((s: any) => s.skill_name),
+      interests: interestRows.map((i: any) => i.interest),
+      location: profile.location ?? "",
+      iti: profile.iti ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 interface RecommendedTopic {
   topic: string;
@@ -154,9 +211,8 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
     }
   };
 
-  // Generate dynamic client-side fallback suggestions when backend is down
-  const getClientFallback = (studentId: number, message?: string): AnalysisData => {
-    const profile = FALLBACK_PROFILES[studentId] || FALLBACK_PROFILES[1];
+  // Generate dynamic recommendations from a profile object (live or mock)
+  const getClientFallback = (profile: any, message?: string): AnalysisData => {
     const trade = profile.trade;
     const name = profile.name;
     const gaps = profile.skill_gaps;
@@ -227,20 +283,15 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
   const fetchAnalysis = async (studentId: number, messageText?: string) => {
     setLoading(true);
     try {
+      // ── Tier 1: FastAPI backend (uses Groq/Bedrock AI + Supabase DB) ─────
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          student_id: studentId,
-          message: messageText || null
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ student_id: studentId, message: messageText || null }),
+        signal: AbortSignal.timeout(8000),
       });
 
-      if (!response.ok) {
-        throw new Error("Backend API returned non-200 response");
-      }
+      if (!response.ok) throw new Error(`FastAPI error: ${response.status}`);
 
       const data: AnalysisData = await response.json();
       setAnalysis(data);
@@ -249,31 +300,32 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
       if (messageText) {
         setMessages((prev) => [
           ...prev,
-          {
-            sender: "bot",
-            text: data.profile_summary || data.greeting,
-            timestamp: new Date()
-          }
+          { sender: "bot", text: data.profile_summary || data.greeting, timestamp: new Date() },
         ]);
       }
     } catch (err) {
-      console.warn("FastAPI backend down, falling back to local simulation:", err);
+      console.warn("FastAPI backend unreachable, trying Supabase direct:", err);
       setIsOfflineMode(true);
-      
-      // Artificial delay to simulate real network request
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      const fallbackData = getClientFallback(studentId, messageText);
+
+      // ── Tier 2: Supabase REST directly from browser (real data, local AI) ─
+      let liveProfile = await fetchProfileFromSupabase(studentId);
+
+      // ── Tier 3: Static offline mock data ─────────────────────────────────
+      if (!liveProfile) {
+        console.warn("Supabase unreachable, using static mock profile.");
+        liveProfile = FALLBACK_PROFILES[studentId] || FALLBACK_PROFILES[1];
+      }
+
+      // Simulate a brief processing delay
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const fallbackData = getClientFallback(liveProfile, messageText);
       setAnalysis(fallbackData);
 
       if (messageText) {
         setMessages((prev) => [
           ...prev,
-          {
-            sender: "bot",
-            text: fallbackData.profile_summary,
-            timestamp: new Date()
-          }
+          { sender: "bot", text: fallbackData.profile_summary, timestamp: new Date() },
         ]);
       }
     } finally {
