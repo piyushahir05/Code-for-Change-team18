@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -33,7 +32,7 @@ def recommended_resources(
 
 @router.post("/{resource_id}/progress", response_model=LearningProgressOut)
 def update_progress(
-    resource_id: uuid.UUID,
+    resource_id: int,
     payload: LearningProgressUpdate,
     student: StudentProfile = Depends(get_current_student_profile),
     db: Session = Depends(get_db),

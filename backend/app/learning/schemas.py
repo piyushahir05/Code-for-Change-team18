@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from typing import Optional
 
@@ -8,8 +7,8 @@ from app.db.models.learning import LearningStatus
 
 
 class LearningResourceOut(BaseModel):
-    id: uuid.UUID
-    title: str
+    id: int
+    title: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
     skill: Optional[str] = None
@@ -30,10 +29,10 @@ class LearningProgressUpdate(BaseModel):
 
 
 class LearningProgressOut(BaseModel):
-    id: uuid.UUID
-    resource_id: uuid.UUID
-    status: LearningStatus
-    progress_percentage: int
+    id: int
+    resource_id: Optional[int] = None
+    status: Optional[LearningStatus] = None
+    progress_percentage: Optional[int] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     resource: LearningResourceOut

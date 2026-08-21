@@ -1,30 +1,31 @@
-import uuid
-from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, DateTime, ForeignKey, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, Text, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.db.models.user import VerificationStatus
 
 
 class RecruiterProfile(Base):
     __tablename__ = "recruiter_profiles"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=True
     )
-
-    company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    company_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     company_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    industry: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    website: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    industry: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    website: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    verification_status: Mapped[Optional[VerificationStatus]] = mapped_column(
+        Enum(
+            VerificationStatus,
+            name="user_verification_status",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
     )
 
     user = relationship("User", back_populates="recruiter_profile")

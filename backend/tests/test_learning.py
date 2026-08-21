@@ -1,12 +1,9 @@
-import uuid
-
 from app.db.models.learning import LearningResource
 from app.db.models.user import UserRole
 
 
 def _seed_resource(db_session, **overrides):
     resource = LearningResource(
-        id=uuid.uuid4(),
         title=overrides.get("title", "Industrial Control Panels Fundamentals"),
         skill=overrides.get("skill", "Industrial Control Panels"),
         trade=overrides.get("trade", "Electrician"),
@@ -26,7 +23,7 @@ def test_list_resources(client, db_session):
 
 
 def test_recommended_resources_prioritizes_skill_gaps(client, db_session, auth_as):
-    matching = _seed_resource(db_session, title="Matches gap", skill="Industrial Control Panels")
+    _seed_resource(db_session, title="Matches gap", skill="Industrial Control Panels")
     _seed_resource(db_session, title="Unrelated", skill="CNC Basics", trade="Fitter")
 
     headers, _ = auth_as(UserRole.STUDENT)
@@ -49,12 +46,12 @@ def test_update_progress_to_completed_sets_100_percent(client, db_session, auth_
 
     response = client.post(
         f"/api/resources/{resource.id}/progress",
-        json={"status": "COMPLETED", "progress_percentage": 50},
+        json={"status": "completed", "progress_percentage": 50},
         headers=headers,
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["status"] == "COMPLETED"
+    assert body["status"] == "completed"
     assert body["progress_percentage"] == 100
     assert body["completed_at"] is not None
 

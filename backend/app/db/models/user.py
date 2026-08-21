@@ -1,39 +1,52 @@
 import enum
-import uuid
-from datetime import datetime
 
-from sqlalchemy import String, Boolean, DateTime, Enum, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 
 class UserRole(str, enum.Enum):
-    STUDENT = "STUDENT"
-    MENTOR = "MENTOR"
-    ADMIN = "ADMIN"
-    RECRUITER = "RECRUITER"
+    STUDENT = "student"
+    MENTOR = "mentor"
+    RECRUITER = "recruiter"
+    ADMIN = "admin"
+
+
+class VerificationStatus(str, enum.Enum):
+    PENDING = "pending"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
 
 
 class User(Base):
     """
-    Application-level user record.
+    Mirrors public.users exactly as defined in the teammate's schema.sql.
 
-    id mirrors the Supabase Auth user id (auth.users.id) - Supabase owns
-    authentication/password storage, this table owns application/role data.
+    IMPORTANT: this schema has no link to Supabase Auth (no auth.users FK) -
+    password_hash is stored here directly (bcrypt via Postgres pgcrypto on
+    the seed data). This backend authenticates against this column and
+    issues its own JWTs (see app/core/security.py) rather than validating
+    Supabase Auth tokens.
     """
 
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole, name="user_role"), nullable=False)
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=True)
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, name="user_role", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=True,
+    )
+    verification_status: Mapped[VerificationStatus] = mapped_column(
+        Enum(
+            VerificationStatus,
+            name="user_verification_status",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
     )
 
     student_profile = relationship(

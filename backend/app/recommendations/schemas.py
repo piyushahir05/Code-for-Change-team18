@@ -13,7 +13,7 @@ class RecommendedResource(BaseModel):
 
 
 class RecommendationsOut(BaseModel):
-    career_readiness_score: float
+    career_readiness_score: int
     skill_gaps: List[str]
     recommended_learning: List[RecommendedResource]
     recommended_career_paths: List[str]

@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -9,7 +8,13 @@ from app.db.models.mentor import MentorProfile
 from app.db.models.user import User
 from app.db.session import get_db
 from app.mentors import service
-from app.mentors.schemas import AssignedStudentOut, MentorProfileOut, MentorProfileUpdate
+from app.mentors.schemas import (
+    AssignedStudentOut,
+    MentorAvailabilityIn,
+    MentorAvailabilityOut,
+    MentorProfileOut,
+    MentorProfileUpdate,
+)
 from app.students.schemas import StudentProfileOut
 
 router = APIRouter(prefix="/api/mentors", tags=["mentors"])
@@ -29,6 +34,34 @@ def update_my_profile(
     db: Session = Depends(get_db),
 ):
     return service.update_profile(db, current_user, payload)
+
+
+# IMPLEMENTATION ASSUMPTION: the mentor's recurring weekly availability,
+# required input for booking a mentor_meetings row against the actual schema.
+@router.get("/availability", response_model=List[MentorAvailabilityOut])
+def list_my_availability(
+    mentor: MentorProfile = Depends(get_current_mentor_profile),
+    db: Session = Depends(get_db),
+):
+    return service.list_availability(db, mentor)
+
+
+@router.post("/availability", response_model=MentorAvailabilityOut, status_code=201)
+def add_my_availability(
+    payload: MentorAvailabilityIn,
+    mentor: MentorProfile = Depends(get_current_mentor_profile),
+    db: Session = Depends(get_db),
+):
+    return service.add_availability(db, mentor, payload)
+
+
+@router.delete("/availability/{availability_id}", status_code=204)
+def delete_my_availability(
+    availability_id: int,
+    mentor: MentorProfile = Depends(get_current_mentor_profile),
+    db: Session = Depends(get_db),
+):
+    service.delete_availability(db, mentor, availability_id)
 
 
 @router.get("", response_model=List[MentorProfileOut])
@@ -53,7 +86,7 @@ def list_assigned_students(
 
 @router.get("/students/{student_id}", response_model=StudentProfileOut)
 def get_assigned_student(
-    student_id: uuid.UUID,
+    student_id: int,
     mentor: MentorProfile = Depends(get_current_mentor_profile),
     db: Session = Depends(get_db),
 ):
@@ -62,7 +95,7 @@ def get_assigned_student(
 
 @router.get("/{mentor_id}", response_model=MentorProfileOut)
 def get_mentor(
-    mentor_id: uuid.UUID,
+    mentor_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

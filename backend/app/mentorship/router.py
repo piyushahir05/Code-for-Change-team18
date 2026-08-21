@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 from fastapi import APIRouter, Depends
@@ -44,7 +43,7 @@ def request_mentorship(
 
 @router.put("/{session_id}/accept", response_model=MentorshipSessionOut)
 def accept_mentorship(
-    session_id: uuid.UUID,
+    session_id: int,
     mentor: MentorProfile = Depends(get_current_mentor_profile),
     db: Session = Depends(get_db),
 ):
@@ -53,7 +52,7 @@ def accept_mentorship(
 
 @router.put("/{session_id}/reject", response_model=MentorshipSessionOut)
 def reject_mentorship(
-    session_id: uuid.UUID,
+    session_id: int,
     mentor: MentorProfile = Depends(get_current_mentor_profile),
     db: Session = Depends(get_db),
 ):
@@ -62,7 +61,7 @@ def reject_mentorship(
 
 @router.post("/{session_id}/schedule", response_model=MentorshipSessionOut)
 def schedule_mentorship(
-    session_id: uuid.UUID,
+    session_id: int,
     payload: MentorshipScheduleRequest,
     mentor: MentorProfile = Depends(get_current_mentor_profile),
     db: Session = Depends(get_db),
@@ -72,7 +71,7 @@ def schedule_mentorship(
 
 @router.put("/{session_id}/cancel", response_model=MentorshipSessionOut)
 def cancel_mentorship(
-    session_id: uuid.UUID,
+    session_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

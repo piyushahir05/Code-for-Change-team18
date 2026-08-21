@@ -1,5 +1,4 @@
-import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
@@ -20,7 +19,7 @@ def list_resources(
         query = query.filter(LearningResource.skill == skill)
     if trade:
         query = query.filter(LearningResource.trade == trade)
-    return query.order_by(LearningResource.created_at.desc()).all()
+    return query.order_by(LearningResource.id.desc()).all()
 
 
 def get_recommended_resources(db: Session, student: StudentProfile) -> List[LearningResource]:
@@ -37,7 +36,7 @@ def list_progress_for_student(db: Session, student: StudentProfile) -> List[Lear
 
 
 def update_progress(
-    db: Session, student: StudentProfile, resource_id: uuid.UUID, status: LearningStatus, progress_percentage: int
+    db: Session, student: StudentProfile, resource_id: int, status: LearningStatus, progress_percentage: int
 ) -> LearningProgress:
     resource = db.query(LearningResource).filter(LearningResource.id == resource_id).first()
     if not resource:
@@ -48,7 +47,7 @@ def update_progress(
         .filter(LearningProgress.student_id == student.id, LearningProgress.resource_id == resource_id)
         .first()
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     if not entry:
         entry = LearningProgress(student_id=student.id, resource_id=resource_id)
         db.add(entry)

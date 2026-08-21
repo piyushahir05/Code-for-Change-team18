@@ -1,53 +1,70 @@
 import enum
-import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Text, DateTime, ForeignKey, Enum, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 
 class MentorshipMode(str, enum.Enum):
-    PHYSICAL = "PHYSICAL"
-    ONLINE = "ONLINE"
+    PHYSICAL = "physical"
+    ONLINE = "online"
 
 
 class MentorshipStatus(str, enum.Enum):
-    REQUESTED = "REQUESTED"
-    ACCEPTED = "ACCEPTED"
-    SCHEDULED = "SCHEDULED"
-    COMPLETED = "COMPLETED"
-    CANCELLED = "CANCELLED"
+    """
+    mentor_meetings.status is a plain `text` column with a CHECK constraint
+    (not a Postgres ENUM type). The live DB's CHECK currently only allows
+    ('scheduled','completed','cancelled','rescheduled'). REQUESTED/ACCEPTED
+    require the additive migration in backend/migrations/ to widen that
+    CHECK constraint - see README. Until that migration runs, only
+    'scheduled' rows can be written successfully.
+    """
+
+    REQUESTED = "requested"
+    ACCEPTED = "accepted"
+    SCHEDULED = "scheduled"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    RESCHEDULED = "rescheduled"
 
 
-class MentorshipSession(Base):
-    __tablename__ = "mentorship_sessions"
+class MentorMeeting(Base):
+    """
+    Maps to public.mentor_meetings. Replaces the originally-designed
+    single `mentorship_sessions` table, which does not exist in the actual
+    schema - the teammate instead built an availability-slot + booked
+    meeting model (see MentorAvailability in mentor.py).
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    mentor_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("mentor_profiles.id", ondelete="CASCADE"), nullable=False
+    `mode` and `location` are NOT in the live schema yet - they are part of
+    the proposed additive migration (backend/migrations/0001_*.sql). They
+    are declared here because the team chose to keep the original
+    request/accept/schedule/physical-or-online flow shape; until the
+    migration is applied, any query touching this table will fail with
+    "column does not exist" for those two columns.
+    """
+
+    __tablename__ = "mentor_meetings"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    mentor_id: Mapped[int] = mapped_column(ForeignKey("mentor_profiles.id", ondelete="CASCADE"), nullable=False)
+    student_id: Mapped[int] = mapped_column(ForeignKey("student_profiles.id", ondelete="CASCADE"), nullable=False)
+    assignment_id: Mapped[int] = mapped_column(
+        ForeignKey("mentor_assignments.id", ondelete="CASCADE"), nullable=False
     )
-    student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id", ondelete="CASCADE"), nullable=False
-    )
-    mode: Mapped[Optional[MentorshipMode]] = mapped_column(
-        Enum(MentorshipMode, name="mentorship_mode"), nullable=True
-    )
-    topic: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    scheduled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    meeting_link: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    status: Mapped[MentorshipStatus] = mapped_column(
-        Enum(MentorshipStatus, name="mentorship_status"), nullable=False, default=MentorshipStatus.REQUESTED
-    )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    scheduled_start: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    scheduled_end: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    meeting_link: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String, nullable=False, default=MentorshipStatus.SCHEDULED.value)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # --- Requires backend/migrations/0001_*.sql (see docstring above) ---
+    mode: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    location: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    topic: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
     mentor = relationship("MentorProfile")
     student = relationship("StudentProfile")
+    assignment = relationship("MentorAssignment")

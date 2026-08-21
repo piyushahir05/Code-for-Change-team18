@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -21,7 +20,7 @@ def list_opportunities(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Students/mentors always see APPROVED opportunities only. Recruiters see
+    """Students/mentors always see ACTIVE (admin-approved) opportunities only. Recruiters see
     their own (any status). Admins may filter by any status."""
     opportunities = service.list_opportunities_for_viewer(db, current_user, status)
     return [OpportunityOut.from_model(o) for o in opportunities]
@@ -29,7 +28,7 @@ def list_opportunities(
 
 @router.get("/{opportunity_id}", response_model=OpportunityOut)
 def get_opportunity(
-    opportunity_id: uuid.UUID,
+    opportunity_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -43,7 +42,7 @@ def create_opportunity(
     recruiter: RecruiterProfile = Depends(get_current_recruiter_profile),
     db: Session = Depends(get_db),
 ):
-    """New opportunities always start PENDING and require admin approval
+    """New opportunities always start DRAFT and require admin approval
     before students can see them."""
     opportunity = service.create_opportunity(db, recruiter, payload)
     return OpportunityOut.from_model(opportunity)
@@ -51,7 +50,7 @@ def create_opportunity(
 
 @router.put("/{opportunity_id}", response_model=OpportunityOut)
 def update_opportunity(
-    opportunity_id: uuid.UUID,
+    opportunity_id: int,
     payload: OpportunityUpdate,
     recruiter: RecruiterProfile = Depends(get_current_recruiter_profile),
     db: Session = Depends(get_db),

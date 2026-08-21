@@ -1,5 +1,5 @@
-import uuid
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -7,7 +7,7 @@ from app.db.models.application import ApplicationStatus
 
 
 class ApplicationCreate(BaseModel):
-    opportunity_id: uuid.UUID
+    opportunity_id: int
 
 
 class ApplicationStatusUpdate(BaseModel):
@@ -15,12 +15,12 @@ class ApplicationStatusUpdate(BaseModel):
 
 
 class ApplicationOut(BaseModel):
-    id: uuid.UUID
-    student_id: uuid.UUID
-    opportunity_id: uuid.UUID
-    status: ApplicationStatus
-    applied_at: datetime
-    updated_at: datetime
+    id: int
+    student_id: Optional[int] = None
+    opportunity_id: Optional[int] = None
+    status: Optional[ApplicationStatus] = None
+    applied_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

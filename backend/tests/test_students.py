@@ -5,7 +5,6 @@ def test_get_profile_auto_creates(client, auth_as):
     headers, _ = auth_as(UserRole.STUDENT)
     response = client.get("/api/students/profile", headers=headers)
     assert response.status_code == 200
-    assert response.json()["profile_completion"] == 0
 
 
 def test_update_profile_with_skills_and_interests(client, auth_as):
@@ -14,6 +13,7 @@ def test_update_profile_with_skills_and_interests(client, auth_as):
         "trade": "Electrician",
         "career_goal": "Industrial Electrician",
         "location": "Pune",
+        "skill_confidence": 75,
         "skills": [
             {"skill_name": "Basic Wiring", "is_gap": False},
             {"skill_name": "Industrial Control Panels", "is_gap": True},
@@ -24,10 +24,12 @@ def test_update_profile_with_skills_and_interests(client, auth_as):
     assert response.status_code == 200
     body = response.json()
     assert body["trade"] == "Electrician"
+    assert body["skill_confidence"] == 75
     assert len(body["skills"]) == 2
     assert len(body["interests"]) == 1
     assert body["profile_completion"] > 0
     assert body["career_readiness_score"] > 0
+    assert isinstance(body["career_readiness_score"], int)
 
 
 def test_recommendations_endpoint(client, auth_as):

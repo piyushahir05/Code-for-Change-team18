@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -24,17 +23,17 @@ def list_verifications(role: Optional[UserRole] = None, db: Session = Depends(ge
 
 
 @router.put("/users/{user_id}/verify", response_model=UserOut)
-def verify_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
+def verify_user(user_id: int, db: Session = Depends(get_db)):
     user = users_service.get_user_or_404(db, user_id)
     return service.verify_user_and_notify(db, user)
 
 
 # IMPLEMENTATION ASSUMPTION: section 32 defines approve/reject routes but not
 # a listing route for the admin opportunity-approval queue (section 36
-# requires one). Defaults to PENDING to match the approval queue's purpose.
+# requires one). Defaults to DRAFT (the closest available state to "pending admin review").
 @router.get("/opportunities", response_model=List[OpportunityOut])
 def list_opportunities_for_review(
-    status: OpportunityStatus = OpportunityStatus.PENDING,
+    status: OpportunityStatus = OpportunityStatus.DRAFT,
     admin: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -43,13 +42,13 @@ def list_opportunities_for_review(
 
 
 @router.put("/opportunities/{opportunity_id}/approve", response_model=OpportunityOut)
-def approve_opportunity(opportunity_id: uuid.UUID, db: Session = Depends(get_db)):
+def approve_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
     opportunity = service.approve_opportunity(db, opportunity_id)
     return OpportunityOut.from_model(opportunity)
 
 
 @router.put("/opportunities/{opportunity_id}/reject", response_model=OpportunityOut)
-def reject_opportunity(opportunity_id: uuid.UUID, db: Session = Depends(get_db)):
+def reject_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
     opportunity = service.reject_opportunity(db, opportunity_id)
     return OpportunityOut.from_model(opportunity)
 

@@ -1,11 +1,9 @@
-import uuid
-
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.errors import ForbiddenError, NotFoundError
-from app.core.security import decode_supabase_jwt
+from app.core.security import decode_access_token
 from app.db.models.mentor import MentorProfile
 from app.db.models.recruiter import RecruiterProfile
 from app.db.models.student import StudentProfile
@@ -20,20 +18,21 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     """
-    Validates the Supabase-issued JWT, then loads the matching application
-    user. The frontend/role claimed by the token is never trusted for
-    authorization - only the `users.role` column loaded here is used.
+    Validates the app-issued JWT (see app/core/security.py - this schema has
+    no Supabase Auth link), then loads the matching `users` row. The
+    frontend/role claimed by the token is never trusted for authorization -
+    only the `users.role` column loaded here is used.
     """
-    payload = decode_supabase_jwt(credentials.credentials)
+    payload = decode_access_token(credentials.credentials)
     raw_user_id = payload.get("sub")
     if not raw_user_id:
         raise NotFoundError("Invalid authentication token")
     try:
-        supabase_user_id = uuid.UUID(raw_user_id)
+        user_id = int(raw_user_id)
     except (ValueError, TypeError):
         raise NotFoundError("Invalid authentication token")
 
-    user = db.query(User).filter(User.id == supabase_user_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise NotFoundError(
             "Authenticated but no application user found. Complete registration via /api/auth/register."
