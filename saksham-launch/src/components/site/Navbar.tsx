@@ -80,14 +80,21 @@ export function Navbar() {
           </div>
 
           <Link
+            to="/student/dashboard"
+            className="hidden rounded-full border border-primary/30 bg-secondary/80 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground sm:inline-flex items-center gap-1.5"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
+            Student Workspace
+          </Link>
+          <Link
             to="/login"
-            className="hidden whitespace-nowrap rounded-full border border-primary/25 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-beige sm:inline-flex"
+            className="hidden rounded-full border border-primary/25 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-beige sm:inline-flex"
           >
             Login
           </Link>
           <Link
             to="/join"
-            className="hidden whitespace-nowrap rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-deep hover:shadow-lift sm:inline-flex"
+            className="hidden rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:bg-primary-deep hover:shadow-lift sm:inline-flex"
           >
             Join Saksham
           </Link>
