@@ -25,6 +25,7 @@ const RECRUITER_OPPORTUNITIES_KEY = "saksham_recruiter_opportunities_v1";
 const RECRUITER_CANDIDATES_KEY = "saksham_recruiter_candidates_v1";
 const RECRUITER_INTERVIEWS_KEY = "saksham_recruiter_interviews_v1";
 const RECRUITER_NOTIFICATIONS_KEY = "saksham_recruiter_notifications_v1";
+const RECRUITER_REGISTRATION_DRAFT_KEY = "saksham_recruiter_registration_draft_v1";
 
 function getStoredItem<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -44,6 +45,144 @@ function setStoredItem<T>(key: string, value: T): void {
   } catch (e) {
     console.warn(`[recruiterService] Could not write ${key}`, e);
   }
+}
+
+export interface RecruiterRegistrationState {
+  account: {
+    name: string; // Contact person full name -> users.name
+    email: string; // Official email -> users.email
+    phone: string; // Contact mobile -> users.phone
+    password?: string;
+    designation: string; // e.g. "Head of Apprentice Hiring"
+    department: string; // e.g. "Human Resources & Talent Acquisition"
+  };
+  organization: {
+    companyName: string; // -> recruiter_profiles.organization
+    tagline: string;
+    description: string;
+    industry: string; // e.g. "Automotive & Auto Components"
+    orgType: string; // "Enterprise / MNC", "Large Manufacturing", "MSME / Small Scale", "PSU / Government"
+    website: string;
+    yearEstablished: string;
+    companySize: string; // "50-200", "201-1000", "1000+"
+    gstin?: string;
+    cin?: string;
+  };
+  locations: {
+    headquartersCity: string;
+    headquartersState: string;
+    headquartersPincode: string;
+    industrialCluster: string; // e.g. "Chakan MIDC, Pune"
+    facilities: {
+      name: string;
+      city: string;
+      state: string;
+      plantType: string;
+    }[];
+    transportProvided: boolean;
+  };
+  hiringFocus: {
+    trades: string[]; // -> recruiter_profiles.expertise
+    hiringTypes: string[]; // "NAPS Apprenticeship", "Full-Time Technician", "Internship"
+    annualCapacity: string; // "10-25", "25-100", "100+"
+    requiredSkills: string[];
+    experienceLevel: string; // "Fresher ITI Passouts", "1+ year experience"
+  };
+  cultureAndPerks: {
+    benefits: string[]; // "Canteen", "Bus Facility", "ESI / Health", "PPE Gear", "Overtime", "Skill Certifications"
+    shiftTimings: string;
+    apprenticeshipStipendRange: string; // "₹14,500 - ₹18,000 / month"
+    fairHiringPledge: boolean;
+  };
+}
+
+export const INITIAL_RECRUITER_REGISTRATION_STATE: RecruiterRegistrationState = {
+  account: {
+    name: "Vikram Malhotra",
+    email: "vikram.malhotra@tatamotors.com",
+    phone: "+91 98201 54321",
+    password: "",
+    designation: "Head of Industrial Relations & Apprentice Hiring",
+    department: "Human Resources & Talent Acquisition",
+  },
+  organization: {
+    companyName: "Tata Motors Passenger Vehicles Ltd",
+    tagline: "Pioneering Sustainable Mobility Solutions for India",
+    description:
+      "Tata Motors is a leading global automobile manufacturing company, producing a wide range of cars, utility vehicles, buses, and commercial vehicles with advanced shopfloor robotics and assembly lines.",
+    industry: "Automotive & Auto Components",
+    orgType: "Enterprise / MNC",
+    website: "https://www.tatamotors.com",
+    yearEstablished: "1945",
+    companySize: "10,000+ Employees",
+    gstin: "27AAACT2727Q1ZW",
+    cin: "L28920MH1945PLC004520",
+  },
+  locations: {
+    headquartersCity: "Mumbai",
+    headquartersState: "Maharashtra",
+    headquartersPincode: "400001",
+    industrialCluster: "Pimpri-Chinchwad & Chakan MIDC Hub",
+    facilities: [
+      {
+        name: "Pimpri Plant (Passenger Vehicles & EV)",
+        city: "Pune",
+        state: "Maharashtra",
+        plantType: "Manufacturing & Assembly",
+      },
+      {
+        name: "Chakan Plant (Commercial Vehicles)",
+        city: "Pune",
+        state: "Maharashtra",
+        plantType: "Press Shop & Body Assembly",
+      },
+      {
+        name: "Sanand Plant",
+        city: "Ahmedabad",
+        state: "Gujarat",
+        plantType: "Vehicle Manufacturing",
+      },
+    ],
+    transportProvided: true,
+  },
+  hiringFocus: {
+    trades: ["Electrician", "Fitter", "Welder", "Machinist", "Turner", "Mechanic Motor Vehicle", "COPA"],
+    hiringTypes: ["NAPS Apprenticeship", "Full-Time Technician", "Diploma/ITI Trainee"],
+    annualCapacity: "100 - 300 Trainees / Year",
+    requiredSkills: [
+      "Shopfloor Safety & 5S",
+      "Wiring & Panel Assembly",
+      "TIG/MIG Welding",
+      "CNC Operation",
+      "Preventive Maintenance",
+      "Blueprint Reading",
+    ],
+    experienceLevel: "Fresher ITI Passouts & 1-Year Apprentices",
+  },
+  cultureAndPerks: {
+    benefits: [
+      "Subsidized Canteen (Breakfast & Lunch)",
+      "Free Bus Route Pickup across Pune & PCMC",
+      "Comprehensive Medical & ESI Coverage",
+      "Full PPE & Safety Uniforms Provided",
+      "Overtime & Production Incentives",
+      "NAPS Government Certification Support",
+      "Fast-track Permanent Technician Absorption Path",
+    ],
+    shiftTimings: "Rotational (General: 8 AM - 4:30 PM | Second: 4:30 PM - 1 AM)",
+    apprenticeshipStipendRange: "₹14,500 - ₹18,000 / month",
+    fairHiringPledge: true,
+  },
+};
+
+export function calculateRecruiterProfileCompletion(state: RecruiterRegistrationState): number {
+  let score = 0;
+  if (state.account.name && state.account.email && state.account.phone) score += 20;
+  if (state.organization.companyName && state.organization.industry && state.organization.website) score += 20;
+  if (state.locations.headquartersCity && state.locations.industrialCluster) score += 20;
+  if (state.hiringFocus.trades.length > 0 && state.hiringFocus.hiringTypes.length > 0) score += 20;
+  if (state.cultureAndPerks.benefits.length > 0 && state.cultureAndPerks.fairHiringPledge) score += 20;
+  return score;
 }
 
 export interface CandidateFilters {
@@ -95,6 +234,48 @@ export const recruiterService = {
     const next: RecruiterCompanyProfile = { ...current, ...updated };
     setStoredItem(RECRUITER_PROFILE_KEY, next);
     return next;
+  },
+
+  // 1.1 Onboarding & Registration Draft State
+  getDraft(): RecruiterRegistrationState {
+    return getStoredItem<RecruiterRegistrationState>(
+      RECRUITER_REGISTRATION_DRAFT_KEY,
+      INITIAL_RECRUITER_REGISTRATION_STATE
+    );
+  },
+
+  saveDraft(state: RecruiterRegistrationState): void {
+    setStoredItem(RECRUITER_REGISTRATION_DRAFT_KEY, state);
+  },
+
+  completeOnboarding(state: RecruiterRegistrationState): RecruiterCompanyProfile {
+    // Save draft
+    this.saveDraft(state);
+
+    // Sync to active company profile
+    const current = this.getCompanyProfile();
+    const updatedProfile: RecruiterCompanyProfile = {
+      ...current,
+      companyName: state.organization.companyName || current.companyName,
+      tagline: state.organization.tagline || current.tagline,
+      description: state.organization.description || current.description,
+      industry: state.organization.industry || current.industry,
+      location: state.locations.headquartersCity
+        ? `${state.locations.headquartersCity}, ${state.locations.headquartersState}`
+        : current.location,
+      headquarters: state.locations.headquartersCity || current.headquarters,
+      website: state.organization.website || current.website,
+      hiringFocus: state.hiringFocus.trades.length > 0 ? state.hiringFocus.trades : current.hiringFocus,
+      contactPerson: {
+        name: state.account.name || current.contactPerson.name,
+        role: state.account.designation || current.contactPerson.role,
+        email: state.account.email || current.contactPerson.email,
+        phone: state.account.phone || current.contactPerson.phone,
+      },
+    };
+
+    setStoredItem(RECRUITER_PROFILE_KEY, updatedProfile);
+    return updatedProfile;
   },
 
   // 2. Recruiter KPI Summary

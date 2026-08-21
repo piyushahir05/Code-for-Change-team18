@@ -49,12 +49,14 @@ const ROLES = [
   },
   {
     id: "recruiter",
-    title: "Recruiter",
+    title: "Recruiter / Industry",
     eyebrow: "Employers & HR Teams",
     description: "Find verified, skilled ITI talent and recruit apprentices for your organization.",
-    cta: "I'm an Employer",
+    cta: "Employer Registration",
     icon: Building2,
-    featured: false,
+    to: "/register/recruiter",
+    featured: true,
+    badge: "Industry",
   },
   {
     id: "admin",

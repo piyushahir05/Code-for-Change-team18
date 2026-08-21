@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LoginBharti4510RouteImport } from './routes/login-bharti-4510'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminOpportunitiesRouteImport } from './routes/admin.opportunities'
@@ -20,11 +19,9 @@ import { Route as AdminResourcesRouteImport } from './routes/admin.resources'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminVerificationsRouteImport } from './routes/admin.verifications'
 import { Route as RecruiterCompanyRouteImport } from './routes/recruiter.company'
-import { Route as RecruiterCompanyBharti4510RouteImport } from './routes/recruiter.company-bharti-4510'
 import { Route as RecruiterDashboardRouteImport } from './routes/recruiter.dashboard'
 import { Route as RecruiterInterviewsRouteImport } from './routes/recruiter.interviews'
 import { Route as RecruiterShortlistedRouteImport } from './routes/recruiter.shortlisted'
-import { Route as RecruiterShortlistedBharti4510RouteImport } from './routes/recruiter.shortlisted-bharti-4510'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RegisterStudentRouteImport } from './routes/register.student'
 import { Route as StudentAiAssistantRouteImport } from './routes/student.ai-assistant'
@@ -36,7 +33,6 @@ import { Route as StudentOnboardingRouteImport } from './routes/student.onboardi
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as RecruiterOpportunitiesIndexRouteImport } from './routes/recruiter.opportunities.index'
 import { Route as RecruiterOpportunitiesIdRouteImport } from './routes/recruiter.opportunities.$id'
-import { Route as RecruiterOpportunitiesIdBharti4510RouteImport } from './routes/recruiter.opportunities.$id-bharti-4510'
 import { Route as RecruiterOpportunitiesNewRouteImport } from './routes/recruiter.opportunities.new'
 import { Route as RecruiterTalentIndexRouteImport } from './routes/recruiter.talent.index'
 import { Route as RecruiterTalentCandidateIdRouteImport } from './routes/recruiter.talent.$candidateId'
@@ -56,11 +52,6 @@ const JoinRoute = JoinRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginBharti4510Route = LoginBharti4510RouteImport.update({
-  id: '/login-bharti-4510',
-  path: '/login-bharti-4510',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
@@ -98,12 +89,6 @@ const RecruiterCompanyRoute = RecruiterCompanyRouteImport.update({
   path: '/recruiter/company',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecruiterCompanyBharti4510Route =
-  RecruiterCompanyBharti4510RouteImport.update({
-    id: '/recruiter/company-bharti-4510',
-    path: '/recruiter/company-bharti-4510',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const RecruiterDashboardRoute = RecruiterDashboardRouteImport.update({
   id: '/recruiter/dashboard',
   path: '/recruiter/dashboard',
@@ -119,12 +104,6 @@ const RecruiterShortlistedRoute = RecruiterShortlistedRouteImport.update({
   path: '/recruiter/shortlisted',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecruiterShortlistedBharti4510Route =
-  RecruiterShortlistedBharti4510RouteImport.update({
-    id: '/recruiter/shortlisted-bharti-4510',
-    path: '/recruiter/shortlisted-bharti-4510',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
   id: '/register/',
   path: '/register/',
@@ -182,12 +161,6 @@ const RecruiterOpportunitiesIdRoute =
     path: '/recruiter/opportunities/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
-const RecruiterOpportunitiesIdBharti4510Route =
-  RecruiterOpportunitiesIdBharti4510RouteImport.update({
-    id: '/recruiter/opportunities/$id-bharti-4510',
-    path: '/recruiter/opportunities/$id-bharti-4510',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const RecruiterOpportunitiesNewRoute =
   RecruiterOpportunitiesNewRouteImport.update({
     id: '/recruiter/opportunities/new',
@@ -221,7 +194,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
-  '/login-bharti-4510': typeof LoginBharti4510Route
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opportunities': typeof AdminOpportunitiesRoute
@@ -229,11 +201,9 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
-  '/recruiter/company-bharti-4510': typeof RecruiterCompanyBharti4510Route
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
-  '/recruiter/shortlisted-bharti-4510': typeof RecruiterShortlistedBharti4510Route
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -244,7 +214,6 @@ export interface FileRoutesByFullPath {
   '/student/profile': typeof StudentProfileRoute
   '/register/': typeof RegisterIndexRoute
   '/recruiter/opportunities/$id': typeof RecruiterOpportunitiesIdRoute
-  '/recruiter/opportunities/$id-bharti-4510': typeof RecruiterOpportunitiesIdBharti4510Route
   '/recruiter/opportunities/new': typeof RecruiterOpportunitiesNewRoute
   '/recruiter/talent/$candidateId': typeof RecruiterTalentCandidateIdRoute
   '/student/opportunities/$id': typeof StudentOpportunitiesIdRoute
@@ -256,7 +225,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
-  '/login-bharti-4510': typeof LoginBharti4510Route
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opportunities': typeof AdminOpportunitiesRoute
@@ -264,11 +232,9 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
-  '/recruiter/company-bharti-4510': typeof RecruiterCompanyBharti4510Route
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
-  '/recruiter/shortlisted-bharti-4510': typeof RecruiterShortlistedBharti4510Route
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -279,7 +245,6 @@ export interface FileRoutesByTo {
   '/student/profile': typeof StudentProfileRoute
   '/register': typeof RegisterIndexRoute
   '/recruiter/opportunities/$id': typeof RecruiterOpportunitiesIdRoute
-  '/recruiter/opportunities/$id-bharti-4510': typeof RecruiterOpportunitiesIdBharti4510Route
   '/recruiter/opportunities/new': typeof RecruiterOpportunitiesNewRoute
   '/recruiter/talent/$candidateId': typeof RecruiterTalentCandidateIdRoute
   '/student/opportunities/$id': typeof StudentOpportunitiesIdRoute
@@ -292,7 +257,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/join': typeof JoinRoute
   '/login': typeof LoginRoute
-  '/login-bharti-4510': typeof LoginBharti4510Route
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/opportunities': typeof AdminOpportunitiesRoute
@@ -300,11 +264,9 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
   '/recruiter/company': typeof RecruiterCompanyRoute
-  '/recruiter/company-bharti-4510': typeof RecruiterCompanyBharti4510Route
   '/recruiter/dashboard': typeof RecruiterDashboardRoute
   '/recruiter/interviews': typeof RecruiterInterviewsRoute
   '/recruiter/shortlisted': typeof RecruiterShortlistedRoute
-  '/recruiter/shortlisted-bharti-4510': typeof RecruiterShortlistedBharti4510Route
   '/register/student': typeof RegisterStudentRoute
   '/student/ai-assistant': typeof StudentAiAssistantRoute
   '/student/applications': typeof StudentApplicationsRoute
@@ -315,7 +277,6 @@ export interface FileRoutesById {
   '/student/profile': typeof StudentProfileRoute
   '/register/': typeof RegisterIndexRoute
   '/recruiter/opportunities/$id': typeof RecruiterOpportunitiesIdRoute
-  '/recruiter/opportunities/$id-bharti-4510': typeof RecruiterOpportunitiesIdBharti4510Route
   '/recruiter/opportunities/new': typeof RecruiterOpportunitiesNewRoute
   '/recruiter/talent/$candidateId': typeof RecruiterTalentCandidateIdRoute
   '/student/opportunities/$id': typeof StudentOpportunitiesIdRoute
@@ -329,7 +290,6 @@ export interface FileRouteTypes {
     | '/'
     | '/join'
     | '/login'
-    | '/login-bharti-4510'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/opportunities'
@@ -337,11 +297,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verifications'
     | '/recruiter/company'
-    | '/recruiter/company-bharti-4510'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
     | '/recruiter/shortlisted'
-    | '/recruiter/shortlisted-bharti-4510'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -352,7 +310,6 @@ export interface FileRouteTypes {
     | '/student/profile'
     | '/register/'
     | '/recruiter/opportunities/$id'
-    | '/recruiter/opportunities/$id-bharti-4510'
     | '/recruiter/opportunities/new'
     | '/recruiter/talent/$candidateId'
     | '/student/opportunities/$id'
@@ -364,7 +321,6 @@ export interface FileRouteTypes {
     | '/'
     | '/join'
     | '/login'
-    | '/login-bharti-4510'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/opportunities'
@@ -372,11 +328,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verifications'
     | '/recruiter/company'
-    | '/recruiter/company-bharti-4510'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
     | '/recruiter/shortlisted'
-    | '/recruiter/shortlisted-bharti-4510'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -387,7 +341,6 @@ export interface FileRouteTypes {
     | '/student/profile'
     | '/register'
     | '/recruiter/opportunities/$id'
-    | '/recruiter/opportunities/$id-bharti-4510'
     | '/recruiter/opportunities/new'
     | '/recruiter/talent/$candidateId'
     | '/student/opportunities/$id'
@@ -399,7 +352,6 @@ export interface FileRouteTypes {
     | '/'
     | '/join'
     | '/login'
-    | '/login-bharti-4510'
     | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/opportunities'
@@ -407,11 +359,9 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/verifications'
     | '/recruiter/company'
-    | '/recruiter/company-bharti-4510'
     | '/recruiter/dashboard'
     | '/recruiter/interviews'
     | '/recruiter/shortlisted'
-    | '/recruiter/shortlisted-bharti-4510'
     | '/register/student'
     | '/student/ai-assistant'
     | '/student/applications'
@@ -422,7 +372,6 @@ export interface FileRouteTypes {
     | '/student/profile'
     | '/register/'
     | '/recruiter/opportunities/$id'
-    | '/recruiter/opportunities/$id-bharti-4510'
     | '/recruiter/opportunities/new'
     | '/recruiter/talent/$candidateId'
     | '/student/opportunities/$id'
@@ -435,7 +384,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   JoinRoute: typeof JoinRoute
   LoginRoute: typeof LoginRoute
-  LoginBharti4510Route: typeof LoginBharti4510Route
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminOpportunitiesRoute: typeof AdminOpportunitiesRoute
@@ -443,11 +391,9 @@ export interface RootRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminVerificationsRoute: typeof AdminVerificationsRoute
   RecruiterCompanyRoute: typeof RecruiterCompanyRoute
-  RecruiterCompanyBharti4510Route: typeof RecruiterCompanyBharti4510Route
   RecruiterDashboardRoute: typeof RecruiterDashboardRoute
   RecruiterInterviewsRoute: typeof RecruiterInterviewsRoute
   RecruiterShortlistedRoute: typeof RecruiterShortlistedRoute
-  RecruiterShortlistedBharti4510Route: typeof RecruiterShortlistedBharti4510Route
   RegisterStudentRoute: typeof RegisterStudentRoute
   StudentAiAssistantRoute: typeof StudentAiAssistantRoute
   StudentApplicationsRoute: typeof StudentApplicationsRoute
@@ -458,7 +404,6 @@ export interface RootRouteChildren {
   StudentProfileRoute: typeof StudentProfileRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
   RecruiterOpportunitiesIdRoute: typeof RecruiterOpportunitiesIdRoute
-  RecruiterOpportunitiesIdBharti4510Route: typeof RecruiterOpportunitiesIdBharti4510Route
   RecruiterOpportunitiesNewRoute: typeof RecruiterOpportunitiesNewRoute
   RecruiterTalentCandidateIdRoute: typeof RecruiterTalentCandidateIdRoute
   StudentOpportunitiesIdRoute: typeof StudentOpportunitiesIdRoute
@@ -488,13 +433,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login-bharti-4510': {
-      id: '/login-bharti-4510'
-      path: '/login-bharti-4510'
-      fullPath: '/login-bharti-4510'
-      preLoaderRoute: typeof LoginBharti4510RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/analytics': {
@@ -546,13 +484,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterCompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/recruiter/company-bharti-4510': {
-      id: '/recruiter/company-bharti-4510'
-      path: '/recruiter/company-bharti-4510'
-      fullPath: '/recruiter/company-bharti-4510'
-      preLoaderRoute: typeof RecruiterCompanyBharti4510RouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/recruiter/dashboard': {
       id: '/recruiter/dashboard'
       path: '/recruiter/dashboard'
@@ -572,13 +503,6 @@ declare module '@tanstack/react-router' {
       path: '/recruiter/shortlisted'
       fullPath: '/recruiter/shortlisted'
       preLoaderRoute: typeof RecruiterShortlistedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recruiter/shortlisted-bharti-4510': {
-      id: '/recruiter/shortlisted-bharti-4510'
-      path: '/recruiter/shortlisted-bharti-4510'
-      fullPath: '/recruiter/shortlisted-bharti-4510'
-      preLoaderRoute: typeof RecruiterShortlistedBharti4510RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register/': {
@@ -658,13 +582,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruiterOpportunitiesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/recruiter/opportunities/$id-bharti-4510': {
-      id: '/recruiter/opportunities/$id-bharti-4510'
-      path: '/recruiter/opportunities/$id-bharti-4510'
-      fullPath: '/recruiter/opportunities/$id-bharti-4510'
-      preLoaderRoute: typeof RecruiterOpportunitiesIdBharti4510RouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/recruiter/opportunities/new': {
       id: '/recruiter/opportunities/new'
       path: '/recruiter/opportunities/new'
@@ -707,7 +624,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   JoinRoute: JoinRoute,
   LoginRoute: LoginRoute,
-  LoginBharti4510Route: LoginBharti4510Route,
   AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminOpportunitiesRoute: AdminOpportunitiesRoute,
@@ -715,11 +631,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminVerificationsRoute: AdminVerificationsRoute,
   RecruiterCompanyRoute: RecruiterCompanyRoute,
-  RecruiterCompanyBharti4510Route: RecruiterCompanyBharti4510Route,
   RecruiterDashboardRoute: RecruiterDashboardRoute,
   RecruiterInterviewsRoute: RecruiterInterviewsRoute,
   RecruiterShortlistedRoute: RecruiterShortlistedRoute,
-  RecruiterShortlistedBharti4510Route: RecruiterShortlistedBharti4510Route,
   RegisterStudentRoute: RegisterStudentRoute,
   StudentAiAssistantRoute: StudentAiAssistantRoute,
   StudentApplicationsRoute: StudentApplicationsRoute,
@@ -730,8 +644,6 @@ const rootRouteChildren: RootRouteChildren = {
   StudentProfileRoute: StudentProfileRoute,
   RegisterIndexRoute: RegisterIndexRoute,
   RecruiterOpportunitiesIdRoute: RecruiterOpportunitiesIdRoute,
-  RecruiterOpportunitiesIdBharti4510Route:
-    RecruiterOpportunitiesIdBharti4510Route,
   RecruiterOpportunitiesNewRoute: RecruiterOpportunitiesNewRoute,
   RecruiterTalentCandidateIdRoute: RecruiterTalentCandidateIdRoute,
   StudentOpportunitiesIdRoute: StudentOpportunitiesIdRoute,
