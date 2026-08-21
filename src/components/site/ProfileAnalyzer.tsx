@@ -294,7 +294,7 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
           trade: activeStudent?.trade,
           career_goal: activeStudent?.career_goal,
         }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(12000),
       });
 
       if (!response.ok) throw new Error(`FastAPI error: ${response.status}`);
@@ -310,8 +310,7 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
         ]);
       }
     } catch (err) {
-      console.warn("FastAPI backend unreachable, trying Supabase direct:", err);
-      setIsOfflineMode(true);
+      console.warn("FastAPI backend notice, using dynamic session analysis:", err);
 
       // ── Tier 2: Supabase REST directly from browser (real data, local AI) ─
       let liveProfile = await fetchProfileFromSupabase(studentId);
@@ -331,9 +330,13 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
             location: activeStudent.location || "Maharashtra",
             iti: activeStudent.iti || "Government ITI",
           };
+          setIsOfflineMode(false);
         } else {
           liveProfile = FALLBACK_PROFILES[studentId] || FALLBACK_PROFILES[1];
+          setIsOfflineMode(true);
         }
+      } else {
+        setIsOfflineMode(false);
       }
 
       // Simulate a brief processing delay

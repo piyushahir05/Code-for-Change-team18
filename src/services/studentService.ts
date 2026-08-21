@@ -297,11 +297,11 @@ export const studentService = {
         body: JSON.stringify({
           name: payload.user.name,
           email: payload.user.email,
-          phone: payload.user.phone,
-          language: payload.user.language,
-          role: "STUDENT",
+          password_hash: "hash_default",
+          role: "student",
+          verification_status: "verified",
         }),
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(8000),
       });
 
       if (userRes.ok) {
@@ -316,30 +316,63 @@ export const studentService = {
           headers,
           body: JSON.stringify({
             user_id: userId,
-            age: payload.profile.age,
-            gender: payload.profile.gender,
-            location: payload.profile.location,
-            iti: payload.profile.iti,
-            trade: payload.profile.trade,
-            education: payload.profile.education,
-            experience: payload.profile.experience,
-            career_goal: payload.profile.career_goal,
-            preferred_industry: payload.profile.preferred_industry,
-            preferred_location: payload.profile.preferred_location,
-            skill_confidence: payload.profile.skill_confidence,
+            age: payload.profile.age || 20,
+            gender: payload.profile.gender || "Male",
+            location: payload.profile.location || "Pune",
+            iti: payload.profile.iti || "Government ITI",
+            trade: payload.profile.trade || "Electrician",
+            education: payload.profile.education || "ITI",
+            experience: payload.profile.experience || "Beginner",
+            career_goal: payload.profile.career_goal || "Industrial Technician",
+            preferred_industry: payload.profile.preferred_industry || "Manufacturing",
+            preferred_location: payload.profile.preferred_location || "Pune",
+            skill_confidence: payload.profile.skill_confidence || 4,
             profile_completion: completionScore,
             career_readiness_score: 78,
-            preferred_language: payload.profile.preferred_language,
+            preferred_language: payload.profile.preferred_language || "English",
           }),
-          signal: AbortSignal.timeout(4000),
+          signal: AbortSignal.timeout(8000),
         });
 
         if (profileRes.ok) {
           const createdProfiles = await profileRes.json();
           if (createdProfiles && createdProfiles.length > 0) {
             profileId = createdProfiles[0].id;
+
+            // 3. Insert skills into student_skills
+            if (payload.skills && payload.skills.length > 0) {
+              for (const s of payload.skills) {
+                await fetch(`${SUPABASE_URL}/rest/v1/student_skills`, {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({
+                    student_profile_id: profileId,
+                    skill_name: s.skill_name,
+                    is_gap: false,
+                  }),
+                }).catch(() => {});
+              }
+            }
+
+            // 4. Insert interests into student_interests
+            if (payload.interests && payload.interests.length > 0) {
+              for (const i of payload.interests) {
+                await fetch(`${SUPABASE_URL}/rest/v1/student_interests`, {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({
+                    student_profile_id: profileId,
+                    interest: i.interest,
+                  }),
+                }).catch(() => {});
+              }
+            }
           }
+        } else {
+          console.warn("Supabase profile insert failed:", profileRes.status, await profileRes.text());
         }
+      } else {
+        console.warn("Supabase user insert failed:", userRes.status, await userRes.text());
       }
     } catch (e) {
       console.warn("Supabase direct insert notice:", e);

@@ -72,11 +72,11 @@ def _call_groq_llama(profile: dict, message: str | None) -> dict:
     user_content = build_user_message(profile, message)
 
     candidate_models = [
-        "llama-3.1-8b-instant",
-        "llama3-8b-8192",
-        "llama-3.3-70b-versatile",
-        "gemma2-9b-it",
-        "mixtral-8x7b-32768",
+        "groq/compound-mini",
+        "groq/compound",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.6-27b",
     ]
 
     last_error = None
@@ -90,7 +90,6 @@ def _call_groq_llama(profile: dict, message: str | None) -> dict:
                 ],
                 temperature=0.1,
                 max_tokens=2048,
-                response_format={"type": "json_object"}
             )
 
             raw_text = completion.choices[0].message.content
@@ -187,27 +186,27 @@ def _get_static_fallback_recommendation(profile: dict, message: str | None) -> d
 def get_recommendation(profile: dict, message: str | None) -> dict:
     """
     Main entry point with 3-level fallback:
-    1. AWS Bedrock Mistral
+    1. Groq Llama (Primary AI engine for fast responses)
           ↓ Fail
-    2. Groq Llama 3.3 70B
+    2. AWS Bedrock Mistral (Secondary fallback provider)
           ↓ Fail
-    3. Dynamic Mock Recommendation Dashboard (Ensures zero runtime crashes)
+    3. Dynamic Mock Recommendation Engine (Ensures zero runtime crashes)
     """
-    # ── Attempt 1: AWS Bedrock Mistral ─────────────────────────────────────
-    try:
-        return _call_bedrock_mistral(profile, message)
-    except Exception as e:
-        logger.warning(f"Bedrock Mistral failed: {e}. Falling back to Groq...")
-
-    # ── Attempt 2: Groq Llama 3.3 70B ──────────────────────────────────────
+    # ── Attempt 1: Groq Llama (Primary) ───────────────────────────────────
     try:
         return _call_groq_llama(profile, message)
     except Exception as e:
-        logger.warning(f"Groq Llama 3.3 70B also failed: {e}. Using dynamic mock fallback...")
+        logger.warning(f"Groq primary AI failed: {e}. Falling back to AWS Bedrock...")
+
+    # ── Attempt 2: AWS Bedrock Mistral (Secondary) ────────────────────────
+    try:
+        return _call_bedrock_mistral(profile, message)
+    except Exception as e:
+        logger.warning(f"AWS Bedrock fallback also failed: {e}. Using dynamic fallback engine...")
 
     # ── Attempt 3: Dynamic Mock Recommendation (Never crashes!) ────────────
     try:
         return _get_static_fallback_recommendation(profile, message)
     except Exception as e:
-        logger.error(f"Mock recommendation builder failed: {e}")
+        logger.error(f"Fallback recommendation builder failed: {e}")
         raise RuntimeError("AI Service error: Unable to generate recommendations.")
