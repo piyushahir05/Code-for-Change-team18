@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+supabase
+requests
+groq
+python-dotenv
+pydantic
