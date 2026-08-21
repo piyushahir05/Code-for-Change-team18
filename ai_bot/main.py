@@ -57,7 +57,7 @@ async def health():
 
 
 @app.get("/api/students", response_model=list[StudentListItem])
-async def list_students():
+def list_students():
     """Return all students for the demo selector dropdown."""
     try:
         students = fetch_all_students()
@@ -68,7 +68,7 @@ async def list_students():
 
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+def chat(req: ChatRequest):
     """
     Core endpoint.
     - Fetches verified student profile from Supabase.

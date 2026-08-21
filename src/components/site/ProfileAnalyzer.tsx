@@ -294,7 +294,7 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
           trade: activeStudent?.trade,
           career_goal: activeStudent?.career_goal,
         }),
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(25000),
       });
 
       if (!response.ok) throw new Error(`FastAPI error: ${response.status}`);
@@ -306,7 +306,11 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
       if (messageText) {
         setMessages((prev) => [
           ...prev,
-          { sender: "bot", text: data.profile_summary || data.greeting, timestamp: new Date() },
+          {
+            sender: "bot",
+            text: data.profile_summary || data.greeting || "Here is guidance for your trade.",
+            timestamp: new Date(),
+          },
         ]);
       }
     } catch (err) {
