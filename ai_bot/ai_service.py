@@ -71,21 +71,37 @@ def _call_groq_llama(profile: dict, message: str | None) -> dict:
     client = Groq(api_key=GROQ_API_KEY)
     user_content = build_user_message(profile, message)
 
-    completion = client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_content}
-        ],
-        temperature=0.1,
-        max_tokens=2048,
-        response_format={"type": "json_object"}
-    )
+    candidate_models = [
+        "llama-3.1-8b-instant",
+        "llama3-8b-8192",
+        "llama-3.3-70b-versatile",
+        "gemma2-9b-it",
+        "mixtral-8x7b-32768",
+    ]
 
-    raw_text = completion.choices[0].message.content
-    result = _parse_json_response(raw_text)
-    result["model_used"] = f"Groq / {GROQ_MODEL}"
-    return result
+    last_error = None
+    for model_name in candidate_models:
+        try:
+            completion = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content}
+                ],
+                temperature=0.1,
+                max_tokens=2048,
+                response_format={"type": "json_object"}
+            )
+
+            raw_text = completion.choices[0].message.content
+            result = _parse_json_response(raw_text)
+            result["model_used"] = f"Groq / {model_name}"
+            return result
+        except Exception as e:
+            last_error = e
+            logger.info(f"Groq model {model_name} failed: {e}. Trying next model...")
+
+    raise last_error or RuntimeError("All Groq models failed")
 
 
 def _get_static_fallback_recommendation(profile: dict, message: str | None) -> dict:

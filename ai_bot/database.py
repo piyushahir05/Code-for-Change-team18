@@ -132,84 +132,132 @@ def _get_all_mock_students() -> list:
     ]
 
 
+def _get_dynamic_fallback_profile(student_id: int) -> dict:
+    if student_id in MOCK_STUDENTS:
+        return MOCK_STUDENTS[student_id]
+    
+    return {
+        "student_id": student_id,
+        "name": f"Student",
+        "age": 20,
+        "gender": "Male",
+        "location": "Pune",
+        "iti": "Government ITI Pune",
+        "trade": "Electrician",
+        "education": "ITI Electrician",
+        "experience": "Beginner",
+        "career_goal": "Become an industrial maintenance electrician",
+        "preferred_industry": "Manufacturing",
+        "preferred_location": "Pune",
+        "skill_confidence": 75,
+        "profile_completion": 80,
+        "career_readiness_score": 76,
+        "preferred_language": "English",
+        "existing_skills": ["Electrical Wiring", "Motor Control", "Electrical Safety"],
+        "skill_gaps": ["PLC Basics", "Control Panels"],
+        "interests": ["Automation", "Maintenance"]
+    }
+
+
 def fetch_student_profile(student_id: int) -> dict:
     """
     Fetch and assemble the full student profile from the live Supabase database.
     """
     if use_mock:
-        return MOCK_STUDENTS.get(student_id, MOCK_STUDENTS[1])
+        return _get_dynamic_fallback_profile(student_id)
 
     try:
         sb = _client
+        # Query by id first
         profile_res = (
             sb.table("student_profiles")
             .select(
-                "id, age, gender, location, iti, trade, education, experience, "
+                "id, user_id, age, gender, location, iti, trade, education, experience, "
                 "career_goal, preferred_industry, preferred_location, "
                 "skill_confidence, profile_completion, career_readiness_score, "
                 "preferred_language, "
                 "users(name, email)"
             )
             .eq("id", student_id)
-            .single()
+            .limit(1)
             .execute()
         )
 
-        if not profile_res.data:
-            logger.warning(f"Student ID {student_id} not found in live DB. Using mock data.")
-            return MOCK_STUDENTS.get(student_id, MOCK_STUDENTS[1])
+        rows = profile_res.data if profile_res else []
 
-        profile = profile_res.data
+        # If not found by id, try matching by user_id
+        if not rows or len(rows) == 0:
+            profile_res = (
+                sb.table("student_profiles")
+                .select(
+                    "id, user_id, age, gender, location, iti, trade, education, experience, "
+                    "career_goal, preferred_industry, preferred_location, "
+                    "skill_confidence, profile_completion, career_readiness_score, "
+                    "preferred_language, "
+                    "users(name, email)"
+                )
+                .eq("user_id", student_id)
+                .limit(1)
+                .execute()
+            )
+            rows = profile_res.data if profile_res else []
+
+        if not rows or len(rows) == 0:
+            logger.warning(f"Student ID {student_id} not found in live DB. Using dynamic profile mockup.")
+            return _get_dynamic_fallback_profile(student_id)
+
+        profile = rows[0]
+        actual_profile_id = profile.get("id", student_id)
 
         # Fetch skills
         skills_res = (
             sb.table("student_skills")
             .select("skill_name, is_gap")
-            .eq("student_profile_id", student_id)
+            .eq("student_profile_id", actual_profile_id)
             .execute()
         )
 
         existing_skills = [
-            s["skill_name"] for s in skills_res.data if not s["is_gap"]
+            s["skill_name"] for s in (skills_res.data or []) if not s.get("is_gap")
         ]
         skill_gaps = [
-            s["skill_name"] for s in skills_res.data if s["is_gap"]
+            s["skill_name"] for s in (skills_res.data or []) if s.get("is_gap")
         ]
 
         # Fetch interests
         interests_res = (
             sb.table("student_interests")
             .select("interest")
-            .eq("student_profile_id", student_id)
+            .eq("student_profile_id", actual_profile_id)
             .execute()
         )
-        interests = [i["interest"] for i in interests_res.data]
+        interests = [i["interest"] for i in (interests_res.data or [])]
 
         user_data = profile.get("users") or {}
         return {
             "student_id": student_id,
-            "name": user_data.get("name", "Student"),
-            "age": profile.get("age"),
-            "gender": profile.get("gender"),
-            "location": profile.get("location"),
-            "iti": profile.get("iti"),
-            "trade": profile.get("trade"),
-            "education": profile.get("education"),
-            "experience": profile.get("experience"),
-            "career_goal": profile.get("career_goal"),
-            "preferred_industry": profile.get("preferred_industry"),
-            "preferred_location": profile.get("preferred_location"),
-            "skill_confidence": profile.get("skill_confidence"),
-            "profile_completion": profile.get("profile_completion"),
-            "career_readiness_score": profile.get("career_readiness_score"),
-            "preferred_language": profile.get("preferred_language"),
-            "existing_skills": existing_skills,
-            "skill_gaps": skill_gaps,
-            "interests": interests,
+            "name": user_data.get("name", f"Student {student_id}"),
+            "age": profile.get("age", 20),
+            "gender": profile.get("gender", "Male"),
+            "location": profile.get("location", "Pune"),
+            "iti": profile.get("iti", "Government ITI"),
+            "trade": profile.get("trade", "Electrician"),
+            "education": profile.get("education", "ITI"),
+            "experience": profile.get("experience", "Beginner"),
+            "career_goal": profile.get("career_goal", "Build a career"),
+            "preferred_industry": profile.get("preferred_industry", "Manufacturing"),
+            "preferred_location": profile.get("preferred_location", "Pune"),
+            "skill_confidence": profile.get("skill_confidence", 75),
+            "profile_completion": profile.get("profile_completion", 80),
+            "career_readiness_score": profile.get("career_readiness_score", 76),
+            "preferred_language": profile.get("preferred_language", "English"),
+            "existing_skills": existing_skills if existing_skills else ["Electrical Wiring", "Motor Control"],
+            "skill_gaps": skill_gaps if skill_gaps else ["PLC Basics", "Control Panels"],
+            "interests": interests if interests else ["Automation"],
         }
     except Exception as e:
-        print(f"⚠️ Database query failed: {e}. Falling back to local profile mockup.")
-        return MOCK_STUDENTS.get(student_id, MOCK_STUDENTS[1])
+        print(f"⚠️ Database query failed: {e}. Falling back to dynamic profile mockup.")
+        return _get_dynamic_fallback_profile(student_id)
 
 
 def fetch_all_students() -> list:
