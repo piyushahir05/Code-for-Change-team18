@@ -43,7 +43,12 @@ export function AdminResourcesPage() {
   const [resources, setResources] = useState<AdminLearningResource[]>([]);
 
   useEffect(() => {
-    setResources(adminService.getResources(selectedCategory));
+    const loadResources = async () => {
+      const nextResources = await adminService.fetchResources(selectedCategory);
+      setResources(nextResources);
+    };
+
+    void loadResources();
   }, [selectedCategory]);
 
   return (

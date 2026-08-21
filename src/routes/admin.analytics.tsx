@@ -35,26 +35,43 @@ export const Route = createFileRoute("/admin/analytics")({
 });
 
 const IMPACT_FUNNEL = [
-  { stage: "Students Enrolled", count: 1248, rate: "100%", desc: "Total youth on Saksham ecosystem" },
-  { stage: "Verified Profiles", count: 932, rate: "74.7%", desc: "NCVT & ITI institute verified" },
-  { stage: "Active in Learning", count: 1040, rate: "83.3%", desc: "Completed safety & trade modules" },
-  { stage: "Applications Sent", count: 536, rate: "42.9%", desc: "Submitted to active opportunities" },
-  { stage: "Placed in Apprenticeships", count: 128, rate: "23.8%", desc: "Inducted with NAPS certification" },
+  { stage: "Students Enrolled", count: 2840, rate: "100%", desc: "Total youth on Saksham ecosystem" },
+  { stage: "Verified Profiles", count: 2145, rate: "75.5%", desc: "NCVT & ITI institute verified" },
+  { stage: "Active in Learning", count: 2318, rate: "81.6%", desc: "Completed safety & trade modules" },
+  { stage: "Applications Sent", count: 3568, rate: "125.6%", desc: "Total submissions across active openings" },
+  { stage: "Placed in Apprenticeships", count: 612, rate: "21.5%", desc: "Inducted with NAPS certification" },
 ];
 
 const TRADE_PLACEMENTS = [
-  { trade: "Electrician", total: 420, placed: 58, rate: "13.8%", color: "bg-primary" },
-  { trade: "Fitter", total: 310, placed: 36, rate: "11.6%", color: "bg-gold" },
-  { trade: "Welder", total: 240, placed: 22, rate: "9.2%", color: "bg-amber-600" },
-  { trade: "Electronics / COPA", total: 160, placed: 12, rate: "7.5%", color: "bg-stone-600" },
+  { trade: "Electrician", total: 720, placed: 156, rate: "21.7%", color: "bg-primary" },
+  { trade: "Fitter", total: 540, placed: 118, rate: "21.9%", color: "bg-gold" },
+  { trade: "Welder", total: 430, placed: 87, rate: "20.2%", color: "bg-amber-600" },
+  { trade: "Electronics / COPA", total: 280, placed: 54, rate: "19.3%", color: "bg-stone-600" },
+];
+
+const MONTHLY_GROWTH = [42, 58, 67, 74, 68, 90, 102, 120, 110, 128, 141, 160];
+const SKILL_DISTRIBUTION = [
+  { label: "Electrical", value: 32, color: "bg-primary" },
+  { label: "Mechanical", value: 24, color: "bg-gold" },
+  { label: "Digital", value: 18, color: "bg-emerald-600" },
+  { label: "Communication", value: 16, color: "bg-amber-600" },
+  { label: "Safety", value: 10, color: "bg-slate-600" },
 ];
 
 export function AdminAnalyticsPage() {
   const [analytics, setAnalytics] = useState<AdminAnalyticsData>(() => adminService.getAnalytics());
 
   useEffect(() => {
-    setAnalytics(adminService.getAnalytics());
+    const loadAnalytics = async () => {
+      const response = await adminService.fetchAnalytics();
+      setAnalytics(response);
+    };
+
+    void loadAnalytics();
   }, []);
+
+  const verificationRate = Math.round((analytics.verifiedStudents / analytics.totalStudents) * 100);
+  const recruiterRate = Math.round((analytics.verifiedRecruiters / analytics.totalRecruiters) * 100);
 
   return (
     <AdminLayout
@@ -62,31 +79,93 @@ export function AdminAnalyticsPage() {
       breadcrumbs={[{ label: "Analytics" }]}
       actionButton={
         <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3.5 py-1.5 rounded-full">
-          128 Placements Verified
+          {analytics.placements} Placements Verified
         </span>
       }
     >
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-              Y4D Foundation Platform Impact
+              Platform Key Performance Indicators
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Empowering ITI students through structured training, certified verification, and direct industry hiring.
+              Real-world employability outcomes across students, mentors, recruiters, and placement performance.
             </p>
           </div>
         </div>
 
-        {/* 1. Core Impact Funnel */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-soft space-y-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[
+            { label: "Total Students", value: analytics.totalStudents, sub: "Enrolled ITI youth", tone: "text-foreground" },
+            { label: "Verified Students", value: analytics.verifiedStudents, sub: `${verificationRate}% verified rate`, tone: "text-emerald-700" },
+            { label: "Total Mentors", value: analytics.totalMentors, sub: "Faculty & experts", tone: "text-foreground" },
+            { label: "Recruiters", value: analytics.totalRecruiters, sub: "Verified employers", tone: "text-red-700" },
+            { label: "Active Opps", value: analytics.activeOpportunities, sub: "Live student openings", tone: "text-foreground" },
+            { label: "Applications", value: analytics.totalApplications, sub: "Submitted by ITI youth", tone: "text-foreground" },
+            { label: "Placements", value: analytics.placements, sub: "Inducted hires", tone: "text-emerald-700" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-[1.6rem] border border-[#e7dfd2] bg-[#f8f5f0] p-5 shadow-[0_12px_28px_rgba(66,49,26,0.08)]">
+              <p className="text-[0.72rem] font-black uppercase tracking-[0.12em] text-[#4d382a]">{item.label}</p>
+              <div className={`mt-4 font-serif text-5xl font-bold leading-none ${item.tone}`}>
+                <Counter value={item.value} />
+              </div>
+              <p className="mt-3 text-sm text-[#6b5f58]">{item.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
+          <div className="rounded-[2rem] border border-border bg-card p-6 shadow-soft">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div>
+                <span className="eyebrow text-gold font-bold">Performance Trend</span>
+                <h2 className="font-serif text-xl font-bold text-foreground">Monthly enrollments & job activity</h2>
+              </div>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+                +18.2% vs last quarter
+              </span>
+            </div>
+
+            <div className="flex h-52 items-end gap-3 overflow-hidden rounded-2xl bg-secondary/40 p-4">
+              {MONTHLY_GROWTH.map((bar, index) => (
+                <div key={index} className="flex flex-1 flex-col items-center justify-end gap-2">
+                  <div className="w-full rounded-t-xl bg-gradient-to-t from-primary to-gold/90" style={{ height: `${Math.max(bar, 18)}%` }} />
+                  <span className="text-[0.6rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {"Jan".slice(0, 3)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-border bg-card p-6 shadow-soft">
+            <div className="mb-5">
+              <span className="eyebrow text-gold font-bold">Opportunity Mix</span>
+              <h2 className="font-serif text-xl font-bold text-foreground">Skill demand distribution</h2>
+            </div>
+
+            <div className="space-y-4">
+              {SKILL_DISTRIBUTION.map((item) => (
+                <div key={item.label}>
+                  <div className="mb-1 flex items-center justify-between text-xs font-medium text-muted-foreground">
+                    <span>{item.label}</span>
+                    <span className="text-foreground font-bold">{item.value}%</span>
+                  </div>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+                    <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.value}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-border/80 bg-card p-6 shadow-soft space-y-5">
           <div className="flex items-center justify-between border-b border-border/60 pb-3">
             <div>
               <span className="eyebrow text-gold font-bold">Employability Funnel</span>
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-foreground">
-                Student Progression Pipeline
-              </h2>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-foreground">Student progression pipeline</h2>
             </div>
             <span className="text-xs text-muted-foreground">From onboarding to certified placement</span>
           </div>
@@ -111,16 +190,12 @@ export function AdminAnalyticsPage() {
           </div>
         </div>
 
-        {/* 2. Grid: Verification Trust & Trade Placement Ratios */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Verification Conversion Card */}
           <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-soft space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div>
                 <span className="eyebrow text-gold font-bold">Trust & Integrity</span>
-                <h3 className="font-serif text-base font-bold text-foreground">
-                  Verification Quality Ratios
-                </h3>
+                <h3 className="font-serif text-base font-bold text-foreground">Verification quality ratios</h3>
               </div>
             </div>
 
@@ -129,17 +204,11 @@ export function AdminAnalyticsPage() {
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-foreground">Student Profile Verification Rate</span>
                   <span className="font-bold text-emerald-800">
-                    {Math.round((analytics.verifiedStudents / analytics.totalStudents) * 100)}% (
-                    {analytics.verifiedStudents} / {analytics.totalStudents})
+                    {verificationRate}% ({analytics.verifiedStudents} / {analytics.totalStudents})
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-emerald-600"
-                    style={{
-                      width: `${(analytics.verifiedStudents / analytics.totalStudents) * 100}%`,
-                    }}
-                  />
+                  <div className="h-full rounded-full bg-emerald-600" style={{ width: `${verificationRate}%` }} />
                 </div>
               </div>
 
@@ -147,17 +216,11 @@ export function AdminAnalyticsPage() {
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-foreground">Recruiter Organization Verification Rate</span>
                   <span className="font-bold text-primary">
-                    {Math.round((analytics.verifiedRecruiters / analytics.totalRecruiters) * 100)}% (
-                    {analytics.verifiedRecruiters} / {analytics.totalRecruiters})
+                    {recruiterRate}% ({analytics.verifiedRecruiters} / {analytics.totalRecruiters})
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{
-                      width: `${(analytics.verifiedRecruiters / analytics.totalRecruiters) * 100}%`,
-                    }}
-                  />
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${recruiterRate}%` }} />
                 </div>
               </div>
 
@@ -173,14 +236,11 @@ export function AdminAnalyticsPage() {
             </div>
           </div>
 
-          {/* Trade Placement Distribution */}
           <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-soft space-y-4">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div>
                 <span className="eyebrow text-gold font-bold">Hiring Outcomes</span>
-                <h3 className="font-serif text-base font-bold text-foreground">
-                  Trade-wise Apprenticeship Absorption
-                </h3>
+                <h3 className="font-serif text-base font-bold text-foreground">Trade-wise apprenticeship absorption</h3>
               </div>
             </div>
 
@@ -194,7 +254,7 @@ export function AdminAnalyticsPage() {
                     </span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                    <div className={`h-full rounded-full ${t.color}`} style={{ width: `${(t.placed / t.total) * 100 * 3}%` }} />
+                    <div className={`h-full rounded-full ${t.color}`} style={{ width: `${Math.min((t.placed / t.total) * 100, 100)}%` }} />
                   </div>
                 </div>
               ))}

@@ -44,13 +44,13 @@ export function AdminOpportunitiesPage() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<AdminOpportunity | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const loadData = () => {
-    const list = adminService.getOpportunities(selectedStatus === "ALL" ? undefined : selectedStatus);
+  const loadData = async () => {
+    const list = await adminService.fetchOpportunities(selectedStatus === "ALL" ? undefined : selectedStatus);
     setOpportunities(list);
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [selectedStatus]);
 
   const filteredList = opportunities.filter((opp) => {
@@ -69,13 +69,13 @@ export function AdminOpportunitiesPage() {
     toast.success(`'${opp.title}' approved successfully ✓`, {
       description: "Opportunity is now live and visible to verified ITI students.",
     });
-    loadData();
+    void loadData();
   };
 
   const handleQuickReject = (opp: AdminOpportunity) => {
     adminService.rejectOpportunity(opp.id, "Does not satisfy safety/stipend criteria.");
     toast.error(`'${opp.title}' rejected`);
-    loadData();
+    void loadData();
   };
 
   return (

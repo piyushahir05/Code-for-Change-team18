@@ -109,14 +109,14 @@ export interface AdminNotification {
 
 // Initial Analytics matching backend AnalyticsOut schema
 export const INITIAL_ADMIN_ANALYTICS: AdminAnalyticsData = {
-  totalStudents: 1248,
-  verifiedStudents: 932,
-  totalMentors: 86,
-  totalRecruiters: 42,
-  verifiedRecruiters: 38,
-  activeOpportunities: 74,
-  totalApplications: 536,
-  placements: 128,
+  totalStudents: 2840,
+  verifiedStudents: 2145,
+  totalMentors: 168,
+  totalRecruiters: 96,
+  verifiedRecruiters: 79,
+  activeOpportunities: 142,
+  totalApplications: 3568,
+  placements: 612,
 };
 
 // Initial Verification Queue (Students, Mentors, Recruiters)

@@ -62,7 +62,7 @@ export function Navbar() {
         </ul>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
-          {/* Active Student Switcher (Demo) */}
+          {/* Active Student Switcher (Demo)
           <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft/30 px-3 py-1.5 shadow-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
             <span className="text-[10px] font-semibold tracking-wider text-primary-deep uppercase">Demo Profile:</span>
@@ -77,7 +77,7 @@ export function Navbar() {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           <Link
             to="/student/dashboard"
@@ -132,7 +132,7 @@ export function Navbar() {
               ))}
             </ul>
             
-            {/* Mobile Active Student Switcher */}
+            Mobile Active Student Switcher
             <div className="mt-4 px-4 py-3 border-t border-border/40">
               <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase mb-1.5">Active Demo Profile</p>
               <div className="flex items-center gap-2 rounded-2xl border border-gold/30 bg-gold-soft/30 px-4 py-3">

@@ -48,8 +48,8 @@ export function AdminVerificationsPage() {
   const [selectedCandidate, setSelectedCandidate] = useState<VerificationCandidate | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const loadData = () => {
-    const list = adminService.getVerifications(
+  const loadData = async () => {
+    const list = await adminService.fetchVerifications(
       selectedRole === "ALL" ? undefined : selectedRole,
       selectedStatus === "ALL" ? undefined : selectedStatus
     );
@@ -57,7 +57,7 @@ export function AdminVerificationsPage() {
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, [selectedRole, selectedStatus]);
 
   const filteredList = verifications.filter((v) => {
@@ -77,13 +77,13 @@ export function AdminVerificationsPage() {
   const handleQuickVerify = (candidate: VerificationCandidate) => {
     adminService.verifyUser(candidate.id);
     toast.success(`Verification approved for ${candidate.name} ✓`);
-    loadData();
+    void loadData();
   };
 
   const handleQuickReject = (candidate: VerificationCandidate) => {
     adminService.rejectUser(candidate.id, "Documents failed validation.");
     toast.error(`Verification rejected for ${candidate.name}`);
-    loadData();
+    void loadData();
   };
 
   return (

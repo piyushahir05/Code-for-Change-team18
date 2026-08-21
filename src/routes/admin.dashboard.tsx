@@ -65,27 +65,34 @@ export function AdminDashboardPage() {
   const [selectedOpportunity, setSelectedOpportunity] = useState<AdminOpportunity | null>(null);
   const [opportunityModalOpen, setOpportunityModalOpen] = useState(false);
 
-  const loadData = () => {
-    setAnalytics(adminService.getAnalytics());
-    setPendingVerifications(adminService.getVerifications(undefined, "PENDING"));
-    setPendingOpportunities(adminService.getOpportunities("PENDING"));
-    setRecentActivity(adminService.getActivityLog().slice(0, 5));
+  const loadData = async () => {
+    const [nextAnalytics, nextVerifications, nextOpportunities, nextActivity] = await Promise.all([
+      adminService.fetchAnalytics(),
+      adminService.fetchVerifications(undefined, "PENDING"),
+      adminService.fetchOpportunities("PENDING"),
+      Promise.resolve(adminService.getActivityLog().slice(0, 5)),
+    ]);
+
+    setAnalytics(nextAnalytics);
+    setPendingVerifications(nextVerifications);
+    setPendingOpportunities(nextOpportunities);
+    setRecentActivity(nextActivity);
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
   const handleQuickVerify = (candidate: VerificationCandidate) => {
     adminService.verifyUser(candidate.id);
     toast.success(`${candidate.name} verified successfully ✓`);
-    loadData();
+    void loadData();
   };
 
   const handleQuickApprove = (opp: AdminOpportunity) => {
     adminService.approveOpportunity(opp.id);
     toast.success(`'${opp.title}' approved successfully ✓`);
-    loadData();
+    void loadData();
   };
 
   const pendingStudentsCount = pendingVerifications.filter((v) => v.role === "STUDENT").length;

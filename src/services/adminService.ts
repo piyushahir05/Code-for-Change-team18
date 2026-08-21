@@ -37,6 +37,7 @@ const ADMIN_OPPORTUNITIES_KEY = "saksham_admin_opportunities_v1";
 const ADMIN_RESOURCES_KEY = "saksham_admin_resources_v1";
 const ADMIN_ACTIVITY_KEY = "saksham_admin_activity_v1";
 const ADMIN_NOTIFICATIONS_KEY = "saksham_admin_notifications_v1";
+const ADMIN_API_BASE = "/api/admin";
 
 function getStored<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -58,9 +59,46 @@ function setStored<T>(key: string, value: T): void {
   }
 }
 
+async function fetchJson<T>(path: string, init?: RequestInit): Promise<T | null> {
+  try {
+    const response = await fetch(`${ADMIN_API_BASE}${path}`, {
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      ...init,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = await response.json();
+    if (payload && typeof payload === "object" && "data" in payload && payload.data !== undefined) {
+      return payload.data as T;
+    }
+    return payload as T;
+  } catch (error) {
+    console.warn(`[adminService] Fetch failed for ${path}`, error);
+    return null;
+  }
+}
+
 export const adminService = {
   // 1. Analytics
-  // TODO: Replace with GET /api/admin/analytics
+  async fetchAnalytics(): Promise<AdminAnalyticsData> {
+    const apiAnalytics = await fetchJson<AdminAnalyticsData>("/analytics");
+    if (apiAnalytics) {
+      setStored(ADMIN_ANALYTICS_KEY, apiAnalytics);
+      return apiAnalytics;
+    }
+
+    const analytics = this.getAnalytics();
+    setStored(ADMIN_ANALYTICS_KEY, analytics);
+    return analytics;
+  },
+
   getAnalytics(): AdminAnalyticsData {
     const verifications = this.getVerifications();
     const opportunities = this.getOpportunities();
@@ -79,7 +117,22 @@ export const adminService = {
   },
 
   // 2. Verifications Queue
-  // TODO: Replace with GET /api/admin/verifications?role={role}
+  async fetchVerifications(role?: AdminUserRole, status?: AdminVerificationStatus): Promise<VerificationCandidate[]> {
+    const query = new URLSearchParams();
+    if (role) query.set("role", role);
+    if (status) query.set("status", status);
+
+    const apiVerifications = await fetchJson<VerificationCandidate[]>(`/verifications${query.toString() ? `?${query.toString()}` : ""}`);
+    if (apiVerifications) {
+      setStored(ADMIN_VERIFICATIONS_KEY, apiVerifications);
+      return apiVerifications;
+    }
+
+    const verifications = this.getVerifications(role, status);
+    setStored(ADMIN_VERIFICATIONS_KEY, verifications);
+    return verifications;
+  },
+
   getVerifications(role?: AdminUserRole, status?: AdminVerificationStatus): VerificationCandidate[] {
     let items = getStored<VerificationCandidate[]>(ADMIN_VERIFICATIONS_KEY, INITIAL_VERIFICATIONS);
     if (role) {
@@ -96,7 +149,6 @@ export const adminService = {
     return list.find((v) => v.id === id || v.userId === id);
   },
 
-  // TODO: Replace with PUT /api/admin/users/{user_id}/verify
   verifyUser(id: string): VerificationCandidate {
     const list = this.getVerifications();
     let updatedCandidate: VerificationCandidate | undefined;
@@ -111,7 +163,6 @@ export const adminService = {
 
     setStored(ADMIN_VERIFICATIONS_KEY, nextList);
 
-    // Add activity log
     if (updatedCandidate) {
       this.addActivity({
         title: "User Verification Approved",
@@ -120,6 +171,8 @@ export const adminService = {
         actor: "Admin (Y4D Foundation)",
       });
     }
+
+    void fetchJson<VerificationCandidate>(`/users/${id}/verify`, { method: "PUT" }).catch(() => undefined);
 
     return updatedCandidate || list[0];
   },
@@ -151,11 +204,30 @@ export const adminService = {
       });
     }
 
+    void fetchJson<VerificationCandidate>(`/users/${id}/reject`, {
+      method: "PUT",
+      body: JSON.stringify({ reason: reason || "Incomplete documentation provided." }),
+    }).catch(() => undefined);
+
     return updatedCandidate || list[0];
   },
 
   // 3. Opportunity Approvals
-  // TODO: Replace with GET /api/admin/opportunities?status={status}
+  async fetchOpportunities(status?: AdminOpportunityStatus): Promise<AdminOpportunity[]> {
+    const query = new URLSearchParams();
+    if (status) query.set("status", status);
+
+    const apiOpportunities = await fetchJson<AdminOpportunity[]>(`/opportunities${query.toString() ? `?${query.toString()}` : ""}`);
+    if (apiOpportunities) {
+      setStored(ADMIN_OPPORTUNITIES_KEY, apiOpportunities);
+      return apiOpportunities;
+    }
+
+    const opportunities = this.getOpportunities(status);
+    setStored(ADMIN_OPPORTUNITIES_KEY, opportunities);
+    return opportunities;
+  },
+
   getOpportunities(status?: AdminOpportunityStatus): AdminOpportunity[] {
     let items = getStored<AdminOpportunity[]>(ADMIN_OPPORTUNITIES_KEY, INITIAL_ADMIN_OPPORTUNITIES);
     if (status) {
@@ -169,7 +241,6 @@ export const adminService = {
     return list.find((o) => o.id === id);
   },
 
-  // TODO: Replace with PUT /api/admin/opportunities/{opportunity_id}/approve
   approveOpportunity(id: string): AdminOpportunity {
     const list = this.getOpportunities();
     let approvedOpp: AdminOpportunity | undefined;
@@ -193,10 +264,11 @@ export const adminService = {
       });
     }
 
+    void fetchJson<AdminOpportunity>(`/opportunities/${id}/approve`, { method: "PUT" }).catch(() => undefined);
+
     return approvedOpp || list[0];
   },
 
-  // TODO: Replace with PUT /api/admin/opportunities/{opportunity_id}/reject
   rejectOpportunity(id: string, reason?: string): AdminOpportunity {
     const list = this.getOpportunities();
     let rejectedOpp: AdminOpportunity | undefined;
@@ -223,6 +295,11 @@ export const adminService = {
         actor: "Admin (Y4D Foundation)",
       });
     }
+
+    void fetchJson<AdminOpportunity>(`/opportunities/${id}/reject`, {
+      method: "PUT",
+      body: JSON.stringify({ reason: reason || "Does not meet stipend or safety requirements." }),
+    }).catch(() => undefined);
 
     return rejectedOpp || list[0];
   },
@@ -251,7 +328,21 @@ export const adminService = {
   },
 
   // 5. Learning Resources
-  // TODO: Replace with GET /api/resources
+  async fetchResources(category?: string): Promise<AdminLearningResource[]> {
+    const query = new URLSearchParams();
+    if (category && category !== "ALL") query.set("category", category);
+
+    const apiResources = await fetchJson<AdminLearningResource[]>(`/resources${query.toString() ? `?${query.toString()}` : ""}`);
+    if (apiResources) {
+      setStored(ADMIN_RESOURCES_KEY, apiResources);
+      return apiResources;
+    }
+
+    const resources = this.getResources(category);
+    setStored(ADMIN_RESOURCES_KEY, resources);
+    return resources;
+  },
+
   getResources(category?: string): AdminLearningResource[] {
     const resources = getStored<AdminLearningResource[]>(ADMIN_RESOURCES_KEY, INITIAL_ADMIN_RESOURCES);
     if (!category || category === "ALL") return resources;
