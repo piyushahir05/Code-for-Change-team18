@@ -221,7 +221,7 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
     // Core analysis payload structure
     const baseAnalysis: AnalysisData = {
       greeting: `Welcome back, ${name}! Here is your personalized learning plan.`,
-      profile_summary: `Currently enrolled in the ${trade} trade at ${profile.iti}. You have a strong confidence score in ${profile.existing_skills.slice(0, 2).join(" & ")}, but your career goal of '${profile.career_goal}' requires targeting a few specific skill gaps.`,
+      profile_summary: `Currently enrolled in the ${trade} trade at ${profile.iti || "ITI"}. You have a strong confidence score in ${(profile.existing_skills || []).slice(0, 2).join(" & ") || "practical workshops"}, but your career goal of '${profile.career_goal}' requires targeting a few specific skill gaps.`,
       recommended_topics: gaps.map((gap: string) => ({
         topic: gap,
         reason: `Required to transition from basic ITI trade curriculum to specialized roles in ${profile.preferred_industry || "industry"}.`
@@ -310,10 +310,24 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
       // ── Tier 2: Supabase REST directly from browser (real data, local AI) ─
       let liveProfile = await fetchProfileFromSupabase(studentId);
 
-      // ── Tier 3: Static offline mock data ─────────────────────────────────
+      // ── Tier 3: Active student session / Static offline mock data ────────
       if (!liveProfile) {
-        console.warn("Supabase unreachable, using static mock profile.");
-        liveProfile = FALLBACK_PROFILES[studentId] || FALLBACK_PROFILES[1];
+        if (activeStudent) {
+          liveProfile = {
+            student_id: activeStudent.id,
+            name: activeStudent.name,
+            trade: activeStudent.trade,
+            career_goal: activeStudent.career_goal,
+            career_readiness_score: activeStudent.career_readiness_score,
+            skill_gaps: activeStudent.skill_gaps || ["Workplace Communication", "Interview Preparation"],
+            existing_skills: activeStudent.existing_skills || ["Workshop Basics"],
+            interests: activeStudent.interests || ["Technical Work"],
+            location: activeStudent.location || "Maharashtra",
+            iti: activeStudent.iti || "Government ITI",
+          };
+        } else {
+          liveProfile = FALLBACK_PROFILES[studentId] || FALLBACK_PROFILES[1];
+        }
       }
 
       // Simulate a brief processing delay

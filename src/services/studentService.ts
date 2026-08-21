@@ -272,10 +272,78 @@ export const studentService = {
 
     console.log("Submitting database-aligned registration payload to API:", payload);
 
-    // Simulate backend relational response with generated IDs & initial readiness
+    // ── Supabase REST credentials ─────────────────────────────────────────────
+    const SUPABASE_URL = "https://espfnslpizfssuntxhah.supabase.co";
+    const SUPABASE_ANON_KEY =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzcGZuc2xwaXpmc3N1bnR4aGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODgwNzMsImV4cCI6MjEwMjg2NDA3M30.lhWSQBlOa1mdL3mYRgTFZkBK5BKzveTsvrdzu0lsTgg";
+
     const completionScore = calculateProfileCompletion(state);
-    const userId = Math.floor(Math.random() * 9000) + 1000;
-    const profileId = Math.floor(Math.random() * 9000) + 1000;
+    let userId = Math.floor(Math.random() * 9000) + 1000;
+    let profileId = Math.floor(Math.random() * 9000) + 1000;
+
+    // Attempt direct insert into Supabase DB
+    try {
+      const headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      };
+
+      // 1. Insert into users table
+      const userRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          name: payload.user.name,
+          email: payload.user.email,
+          phone: payload.user.phone,
+          language: payload.user.language,
+          role: "STUDENT",
+        }),
+        signal: AbortSignal.timeout(4000),
+      });
+
+      if (userRes.ok) {
+        const createdUsers = await userRes.json();
+        if (createdUsers && createdUsers.length > 0) {
+          userId = createdUsers[0].id;
+        }
+
+        // 2. Insert into student_profiles table
+        const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/student_profiles`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            user_id: userId,
+            age: payload.profile.age,
+            gender: payload.profile.gender,
+            location: payload.profile.location,
+            iti: payload.profile.iti,
+            trade: payload.profile.trade,
+            education: payload.profile.education,
+            experience: payload.profile.experience,
+            career_goal: payload.profile.career_goal,
+            preferred_industry: payload.profile.preferred_industry,
+            preferred_location: payload.profile.preferred_location,
+            skill_confidence: payload.profile.skill_confidence,
+            profile_completion: completionScore,
+            career_readiness_score: 78,
+            preferred_language: payload.profile.preferred_language,
+          }),
+          signal: AbortSignal.timeout(4000),
+        });
+
+        if (profileRes.ok) {
+          const createdProfiles = await profileRes.json();
+          if (createdProfiles && createdProfiles.length > 0) {
+            profileId = createdProfiles[0].id;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Supabase direct insert notice:", e);
+    }
 
     const session: ActiveStudentSession = {
       user: {
