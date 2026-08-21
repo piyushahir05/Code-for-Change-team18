@@ -51,7 +51,7 @@ export function Navbar() {
               <Link
                 to="/"
                 hash={item.hash}
-                className="rounded-full px-3 py-2 text-[0.82rem] font-medium text-foreground/75 transition-colors hover:bg-beige hover:text-primary"
+                className="whitespace-nowrap rounded-full px-3 py-2 text-[0.82rem] font-medium text-foreground/75 transition-colors hover:bg-beige hover:text-primary"
               >
                 {item.label}
               </Link>
@@ -62,13 +62,13 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-2 xl:ml-4">
           <Link
             to="/login"
-            className="hidden rounded-full border border-primary/25 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-beige sm:inline-flex"
+            className="hidden whitespace-nowrap rounded-full border border-primary/25 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-beige sm:inline-flex"
           >
             Login
           </Link>
           <Link
             to="/join"
-            className="hidden rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-deep hover:shadow-lift sm:inline-flex"
+            className="hidden whitespace-nowrap rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-deep hover:shadow-lift sm:inline-flex"
           >
             Join Saksham
           </Link>
