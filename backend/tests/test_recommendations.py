@@ -1,31 +1,31 @@
 from app.db.models.student import StudentProfile, StudentSkill
 from app.db.models.user import User, UserRole
 from app.recommendations.service import recommendation_service
-import uuid
 
 
 def test_career_readiness_score_increases_with_profile_completeness(db_session):
-    user = User(id=uuid.uuid4(), email="a@example.com", full_name="A", role=UserRole.STUDENT, is_verified=True)
+    user = User(name="A", email="a@example.com", role=UserRole.STUDENT)
     db_session.add(user)
     db_session.flush()
 
-    empty_profile = StudentProfile(user_id=user.id)
-    db_session.add(empty_profile)
+    profile = StudentProfile(user_id=user.id, profile_completion=0)
+    db_session.add(profile)
     db_session.flush()
-    empty_score = recommendation_service.get_career_readiness_score(empty_profile)
+    empty_score = recommendation_service.get_career_readiness_score(profile)
 
-    empty_profile.profile_completion = 80
-    empty_profile.career_goal = "Industrial Electrician"
-    empty_profile.experience = "1 year"
-    db_session.add(StudentSkill(student_profile_id=empty_profile.id, skill_name="Basic Wiring", is_gap=False))
+    profile.profile_completion = 80
+    profile.career_goal = "Industrial Electrician"
+    profile.experience = "1 year"
+    db_session.add(StudentSkill(student_profile_id=profile.id, skill_name="Basic Wiring", is_gap=False))
     db_session.flush()
-    filled_score = recommendation_service.get_career_readiness_score(empty_profile)
+    filled_score = recommendation_service.get_career_readiness_score(profile)
 
     assert filled_score > empty_score
+    assert isinstance(filled_score, int)
 
 
 def test_skill_gaps_only_returns_gap_skills(db_session):
-    user = User(id=uuid.uuid4(), email="b@example.com", full_name="B", role=UserRole.STUDENT, is_verified=True)
+    user = User(name="B", email="b@example.com", role=UserRole.STUDENT)
     db_session.add(user)
     db_session.flush()
     profile = StudentProfile(user_id=user.id)

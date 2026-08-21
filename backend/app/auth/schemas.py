@@ -1,15 +1,14 @@
-import uuid
-from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.db.models.user import UserRole
+from app.db.models.user import UserRole, VerificationStatus
 
 
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
-    full_name: str = Field(min_length=1, max_length=255)
+    name: str = Field(min_length=1)
     # Public registration cannot create ADMIN accounts.
     role: UserRole = UserRole.STUDENT
 
@@ -20,12 +19,11 @@ class LoginRequest(BaseModel):
 
 
 class UserOut(BaseModel):
-    id: uuid.UUID
-    email: str
-    full_name: str
-    role: UserRole
-    is_verified: bool
-    created_at: datetime
+    id: int
+    email: Optional[str] = None
+    name: Optional[str] = None
+    role: Optional[UserRole] = None
+    verification_status: Optional[VerificationStatus] = None
 
     class Config:
         from_attributes = True

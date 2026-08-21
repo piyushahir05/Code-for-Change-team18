@@ -1,5 +1,3 @@
-import uuid
-from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
@@ -11,17 +9,17 @@ class StudentSkillIn(BaseModel):
 
 
 class StudentSkillOut(BaseModel):
-    id: uuid.UUID
-    skill_name: str
-    is_gap: bool
+    id: int
+    skill_name: Optional[str] = None
+    is_gap: Optional[bool] = None
 
     class Config:
         from_attributes = True
 
 
 class StudentInterestOut(BaseModel):
-    id: uuid.UUID
-    interest: str
+    id: int
+    interest: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -46,15 +44,17 @@ class StudentProfileUpdate(BaseModel):
     career_goal: Optional[str] = None
     preferred_industry: Optional[str] = None
     preferred_location: Optional[str] = None
-    skill_confidence: Optional[str] = None
+    # NOTE: skill_confidence is an integer in the actual schema (e.g. a 0-100
+    # self-rating), not free text.
+    skill_confidence: Optional[int] = None
     preferred_language: Optional[str] = None
     skills: Optional[List[StudentSkillIn]] = None
     interests: Optional[List[str]] = None
 
 
 class StudentProfileOut(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
+    id: int
+    user_id: Optional[int] = None
     age: Optional[int] = None
     gender: Optional[str] = None
     location: Optional[str] = None
@@ -65,12 +65,10 @@ class StudentProfileOut(BaseModel):
     career_goal: Optional[str] = None
     preferred_industry: Optional[str] = None
     preferred_location: Optional[str] = None
-    skill_confidence: Optional[str] = None
-    profile_completion: int
-    career_readiness_score: float
+    skill_confidence: Optional[int] = None
+    profile_completion: Optional[int] = None
+    career_readiness_score: Optional[int] = None
     preferred_language: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
     skills: List[StudentSkillOut] = Field(default_factory=list)
     interests: List[StudentInterestOut] = Field(default_factory=list)
 

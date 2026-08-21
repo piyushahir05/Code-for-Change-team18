@@ -10,6 +10,9 @@ IMPLEMENTATION ASSUMPTION: since no concrete algorithm was handed off yet,
 this class contains a deterministic, rule-based placeholder so the student
 dashboard, AI module, and tests all work end-to-end today. It should be the
 only file that needs to change when the real algorithm lands.
+
+NOTE: career_readiness_score is an integer column in the actual schema
+(student_profiles.career_readiness_score int), not a float.
 """
 from typing import List
 
@@ -21,9 +24,9 @@ from app.db.models.student import StudentProfile
 
 
 class RecommendationService:
-    def get_career_readiness_score(self, student: StudentProfile) -> float:
+    def get_career_readiness_score(self, student: StudentProfile) -> int:
         score = 0.0
-        score += min(student.profile_completion, 100) * 0.4
+        score += min(student.profile_completion or 0, 100) * 0.4
 
         total_skills = len(student.skills)
         if total_skills:
@@ -35,10 +38,10 @@ class RecommendationService:
             score += 10
         if student.experience:
             score += 10
-        return round(min(score, 100.0), 1)
+        return round(min(score, 100.0))
 
     def get_skill_gaps(self, student: StudentProfile) -> List[str]:
-        return [s.skill_name for s in student.skills if s.is_gap]
+        return [s.skill_name for s in student.skills if s.is_gap and s.skill_name]
 
     def get_recommended_career_paths(self, student: StudentProfile) -> List[str]:
         paths = []
@@ -52,7 +55,7 @@ class RecommendationService:
         return paths[:5]
 
     def get_recommended_resources(self, db: Session, student: StudentProfile, limit: int = 5) -> List[LearningResource]:
-        gap_skills = {s.skill_name.lower() for s in student.skills if s.is_gap}
+        gap_skills = {s.skill_name.lower() for s in student.skills if s.is_gap and s.skill_name}
         query = db.query(LearningResource)
 
         candidates = query.all()
@@ -74,12 +77,12 @@ class RecommendationService:
         return candidates[:limit]
 
     def get_recommended_opportunities(self, db: Session, student: StudentProfile, limit: int = 5) -> List[Opportunity]:
-        query = db.query(Opportunity).filter(Opportunity.status == OpportunityStatus.APPROVED)
+        query = db.query(Opportunity).filter(Opportunity.status == OpportunityStatus.ACTIVE)
         matched = query.all()
 
         def relevance(opportunity: Opportunity) -> int:
             score = 0
-            trade_or_skill_targets = {s.skill_or_trade.lower() for s in opportunity.skills}
+            trade_or_skill_targets = {s.skill_or_trade.lower() for s in opportunity.skills if s.skill_or_trade}
             if student.trade and student.trade.lower() in trade_or_skill_targets:
                 score += 2
             if student.preferred_industry and opportunity.company and student.preferred_industry.lower() in opportunity.company.lower():
@@ -92,6 +95,7 @@ class RecommendationService:
         return matched[:limit]
 
     def get_student_recommendations(self, db: Session, student: StudentProfile) -> dict:
+        gap_skill_names = {s.skill_name.lower() for s in student.skills if s.is_gap and s.skill_name}
         return {
             "career_readiness_score": self.get_career_readiness_score(student),
             "skill_gaps": self.get_skill_gaps(student),
@@ -100,7 +104,7 @@ class RecommendationService:
                     "id": str(r.id),
                     "title": r.title,
                     "skill": r.skill,
-                    "reason": "Matches a skill gap or your trade" if (r.skill and r.skill.lower() in {s.skill_name.lower() for s in student.skills if s.is_gap}) else "Popular resource for your trade",
+                    "reason": "Matches a skill gap or your trade" if (r.skill and r.skill.lower() in gap_skill_names) else "Popular resource for your trade",
                 }
                 for r in self.get_recommended_resources(db, student)
             ],

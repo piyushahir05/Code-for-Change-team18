@@ -9,14 +9,23 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: str = "development"
 
-    # Supabase
-    SUPABASE_URL: str = ""
-    SUPABASE_ANON_KEY: str = ""
-    SUPABASE_SERVICE_ROLE_KEY: str = ""
-    SUPABASE_JWT_SECRET: str = ""
-
-    # Database (direct Postgres connection used by SQLAlchemy)
+    # Direct PostgreSQL connection to the team's Supabase project (SQLAlchemy/psycopg2).
+    # This is the actual database the teammate's schema.sql / init_database_full.sql was
+    # applied to - get the connection string from Supabase -> Project Settings -> Database.
     DATABASE_URL: str = "postgresql+psycopg2://postgres:password@localhost:5432/postgres"
+
+    # Optional: matches the teammate's backend/.env.example naming exactly. Not used by the
+    # SQLAlchemy data path (DATABASE_URL is), but kept available for any future use of the
+    # Supabase client (e.g. Storage) against the same project.
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+
+    # App-issued auth. The teammate's schema has no auth.users link at all - public.users is
+    # a plain table with its own password_hash column (bcrypt via pgcrypto) - so this backend
+    # is the source of truth for issuing/verifying session tokens, not Supabase Auth.
+    JWT_SECRET: str = ""
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24
 
     # AI
     AI_PROVIDER: str = "mock"  # mock | openai | groq

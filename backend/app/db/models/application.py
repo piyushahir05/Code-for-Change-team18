@@ -1,48 +1,48 @@
 import enum
-import uuid
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import DateTime, ForeignKey, Enum, func, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 
 class ApplicationStatus(str, enum.Enum):
-    APPLIED = "APPLIED"
-    UNDER_REVIEW = "UNDER_REVIEW"
-    SHORTLISTED = "SHORTLISTED"
-    INTERVIEW = "INTERVIEW"
-    SELECTED = "SELECTED"
-    REJECTED = "REJECTED"
+    APPLIED = "applied"
+    SHORTLISTED = "shortlisted"
+    INTERVIEW = "interview"
+    SELECTED = "selected"
+    REJECTED = "rejected"
 
 
 class Application(Base):
     """
     IMPORTANT: recruiter_id is intentionally NOT stored here.
     Recruiter is derived via application -> opportunity -> recruiter.
+
+    NOTE: the actual DB table has NO UNIQUE(student_id, opportunity_id)
+    constraint (unlike what the Master Context specifies). Duplicate
+    applications are prevented at the application layer only (see
+    app/applications/service.py) until that constraint is added via the
+    proposed additive migration in backend/migrations/.
     """
 
     __tablename__ = "applications"
-    __table_args__ = (
-        UniqueConstraint("student_id", "opportunity_id", name="uq_student_opportunity_application"),
-    )
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id", ondelete="CASCADE"), nullable=False
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    student_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("student_profiles.id", ondelete="CASCADE"), nullable=True
     )
-    opportunity_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("opportunities.id", ondelete="CASCADE"), nullable=False
+    opportunity_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("opportunities.id", ondelete="CASCADE"), nullable=True
     )
-    status: Mapped[ApplicationStatus] = mapped_column(
-        Enum(ApplicationStatus, name="application_status"), nullable=False, default=ApplicationStatus.APPLIED
+    status: Mapped[Optional[ApplicationStatus]] = mapped_column(
+        Enum(ApplicationStatus, name="application_status", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=True,
     )
-    applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    applied_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     student = relationship("StudentProfile", back_populates="applications")
     opportunity = relationship("Opportunity", back_populates="applications")

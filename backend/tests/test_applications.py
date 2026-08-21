@@ -7,12 +7,19 @@ def _make_student(client, auth_as):
     return headers, user
 
 
+def _make_verified_recruiter(client, auth_as):
+    headers, user = auth_as(UserRole.RECRUITER)
+    client.put("/api/recruiters/profile", json={"company_name": "Voltage Tech"}, headers=headers)
+    admin_headers, _ = auth_as(UserRole.ADMIN)
+    client.put(f"/api/admin/users/{user.id}/verify", headers=admin_headers)
+    return headers, user
+
+
 def _approved_opportunity(client, auth_as):
-    recruiter_headers, _ = auth_as(UserRole.RECRUITER)
-    client.put("/api/recruiters/profile", json={"company_name": "Voltage Tech"}, headers=recruiter_headers)
+    recruiter_headers, _ = _make_verified_recruiter(client, auth_as)
     opp = client.post(
         "/api/opportunities",
-        json={"type": "JOB", "title": "Junior Electrician", "skills": ["Electrician"]},
+        json={"type": "job", "title": "Junior Electrician", "skills": ["Electrician"]},
         headers=recruiter_headers,
     ).json()
 
@@ -27,7 +34,7 @@ def test_student_can_apply_to_approved_opportunity(client, auth_as):
 
     response = client.post("/api/applications", json={"opportunity_id": opp["id"]}, headers=student_headers)
     assert response.status_code == 201
-    assert response.json()["status"] == "APPLIED"
+    assert response.json()["status"] == "applied"
 
 
 def test_duplicate_application_is_rejected(client, auth_as):
@@ -41,12 +48,11 @@ def test_duplicate_application_is_rejected(client, auth_as):
     assert second.status_code == 409
 
 
-def test_cannot_apply_to_pending_opportunity(client, auth_as):
-    recruiter_headers, _ = auth_as(UserRole.RECRUITER)
-    client.put("/api/recruiters/profile", json={"company_name": "Voltage Tech"}, headers=recruiter_headers)
+def test_cannot_apply_to_draft_opportunity(client, auth_as):
+    recruiter_headers, _ = _make_verified_recruiter(client, auth_as)
     opp = client.post(
         "/api/opportunities",
-        json={"type": "JOB", "title": "Junior Electrician", "skills": []},
+        json={"type": "job", "title": "Junior Electrician", "skills": []},
         headers=recruiter_headers,
     ).json()
 
@@ -68,14 +74,14 @@ def test_recruiter_sees_and_updates_own_opportunity_applications(client, auth_as
 
     update = client.put(
         f"/api/applications/{application['id']}/status",
-        json={"status": "SHORTLISTED"},
+        json={"status": "shortlisted"},
         headers=recruiter_headers,
     )
     assert update.status_code == 200
-    assert update.json()["status"] == "SHORTLISTED"
+    assert update.json()["status"] == "shortlisted"
 
     student_view = client.get("/api/applications/student", headers=student_headers)
-    assert student_view.json()[0]["status"] == "SHORTLISTED"
+    assert student_view.json()[0]["status"] == "shortlisted"
 
 
 def test_recruiter_cannot_update_another_recruiters_application(client, auth_as):
@@ -85,12 +91,11 @@ def test_recruiter_cannot_update_another_recruiters_application(client, auth_as)
         "/api/applications", json={"opportunity_id": opp["id"]}, headers=student_headers
     ).json()
 
-    other_recruiter_headers, _ = auth_as(UserRole.RECRUITER)
-    client.put("/api/recruiters/profile", json={"company_name": "Other Co"}, headers=other_recruiter_headers)
+    other_recruiter_headers, _ = _make_verified_recruiter(client, auth_as)
 
     response = client.put(
         f"/api/applications/{application['id']}/status",
-        json={"status": "SHORTLISTED"},
+        json={"status": "shortlisted"},
         headers=other_recruiter_headers,
     )
     assert response.status_code == 403

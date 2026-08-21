@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -35,7 +34,7 @@ def list_my_applications(
 
 @router.get("/recruiter", response_model=List[ApplicationOut])
 def list_applications_for_my_opportunities(
-    opportunity_id: Optional[uuid.UUID] = None,
+    opportunity_id: Optional[int] = None,
     recruiter: RecruiterProfile = Depends(get_current_recruiter_profile),
     db: Session = Depends(get_db),
 ):
@@ -45,7 +44,7 @@ def list_applications_for_my_opportunities(
 
 @router.put("/{application_id}/status", response_model=ApplicationOut)
 def update_application_status(
-    application_id: uuid.UUID,
+    application_id: int,
     payload: ApplicationStatusUpdate,
     recruiter: RecruiterProfile = Depends(get_current_recruiter_profile),
     db: Session = Depends(get_db),

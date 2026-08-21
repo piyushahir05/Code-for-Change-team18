@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
 
 from app.db.models.recruiter import RecruiterProfile
-from app.db.models.user import User
+from app.db.models.user import User, VerificationStatus
 from app.recruiters.schemas import RecruiterProfileUpdate
 
 
 def get_or_create_profile(db: Session, user: User) -> RecruiterProfile:
     profile = db.query(RecruiterProfile).filter(RecruiterProfile.user_id == user.id).first()
     if not profile:
-        profile = RecruiterProfile(user_id=user.id)
+        profile = RecruiterProfile(user_id=user.id, verification_status=VerificationStatus.PENDING)
         db.add(profile)
         db.commit()
         db.refresh(profile)

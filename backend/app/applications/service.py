@@ -1,7 +1,6 @@
-import uuid
+from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.applications.schemas import ApplicationCreate
@@ -15,9 +14,13 @@ from app.notifications.service import create_notification
 
 def create_application(db: Session, student: StudentProfile, payload: ApplicationCreate) -> Application:
     opportunity = db.query(Opportunity).filter(Opportunity.id == payload.opportunity_id).first()
-    if not opportunity or opportunity.status != OpportunityStatus.APPROVED:
+    if not opportunity or opportunity.status != OpportunityStatus.ACTIVE:
         raise NotFoundError("Opportunity not found or not open for applications")
 
+    # NOTE: the actual applications table has no UNIQUE(student_id, opportunity_id)
+    # constraint (unlike the Master Context spec) - this pre-check is the only
+    # duplicate-prevention in place until the proposed additive migration in
+    # backend/migrations/ adds that constraint.
     existing = (
         db.query(Application)
         .filter(Application.student_id == student.id, Application.opportunity_id == opportunity.id)
@@ -26,13 +29,16 @@ def create_application(db: Session, student: StudentProfile, payload: Applicatio
     if existing:
         raise ConflictError("You have already applied to this opportunity")
 
-    application = Application(student_id=student.id, opportunity_id=opportunity.id, status=ApplicationStatus.APPLIED)
+    now = datetime.utcnow()
+    application = Application(
+        student_id=student.id,
+        opportunity_id=opportunity.id,
+        status=ApplicationStatus.APPLIED,
+        applied_at=now,
+        updated_at=now,
+    )
     db.add(application)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise ConflictError("You have already applied to this opportunity")
+    db.commit()
     db.refresh(application)
     return application
 
@@ -41,13 +47,13 @@ def list_applications_for_student(db: Session, student: StudentProfile) -> List[
     return (
         db.query(Application)
         .filter(Application.student_id == student.id)
-        .order_by(Application.applied_at.desc())
+        .order_by(Application.id.desc())
         .all()
     )
 
 
 def list_applications_for_recruiter(
-    db: Session, recruiter: RecruiterProfile, opportunity_id: Optional[uuid.UUID] = None
+    db: Session, recruiter: RecruiterProfile, opportunity_id: Optional[int] = None
 ) -> List[Application]:
     query = (
         db.query(Application)
@@ -56,11 +62,11 @@ def list_applications_for_recruiter(
     )
     if opportunity_id:
         query = query.filter(Application.opportunity_id == opportunity_id)
-    return query.order_by(Application.applied_at.desc()).all()
+    return query.order_by(Application.id.desc()).all()
 
 
 def update_application_status(
-    db: Session, recruiter: RecruiterProfile, application_id: uuid.UUID, new_status: ApplicationStatus
+    db: Session, recruiter: RecruiterProfile, application_id: int, new_status: ApplicationStatus
 ) -> Application:
     application = db.query(Application).filter(Application.id == application_id).first()
     if not application:
@@ -74,15 +80,17 @@ def update_application_status(
         raise BadRequestError("Cannot manually revert an application back to APPLIED")
 
     application.status = new_status
+    application.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(application)
 
     student_user_id = application.student.user_id
-    create_notification(
-        db,
-        user_id=student_user_id,
-        title="Application status updated",
-        message=f"Your application for '{opportunity.title}' is now {new_status.value}.",
-        type="APPLICATION_STATUS",
-    )
+    if student_user_id:
+        create_notification(
+            db,
+            user_id=student_user_id,
+            title="Application status updated",
+            message=f"Your application for '{opportunity.title}' is now {new_status.value}.",
+            type="APPLICATION_STATUS",
+        )
     return application
