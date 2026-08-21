@@ -367,8 +367,12 @@ function LoginPage() {
                       <button
                         key={r}
                         type="button"
-                        onClick={() => navigate({ to: "/join" })}
-                        className="rounded-full border border-primary/25 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-secondary"
+                        onClick={() => {
+                          if (r === "Student") navigate({ to: "/register/student" });
+                          else if (r === "Industry") navigate({ to: "/register/recruiter" });
+                          else navigate({ to: "/join" });
+                        }}
+                        className="rounded-full border border-primary/25 px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-secondary cursor-pointer"
                       >
                         Register as {r}
                       </button>
