@@ -287,7 +287,13 @@ export function ProfileAnalyzer({ triggerOpen = false, onCloseTrigger }: Profile
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: studentId, message: messageText || null }),
+        body: JSON.stringify({
+          student_id: studentId,
+          message: messageText || null,
+          name: activeStudent?.name,
+          trade: activeStudent?.trade,
+          career_goal: activeStudent?.career_goal,
+        }),
         signal: AbortSignal.timeout(8000),
       });
 

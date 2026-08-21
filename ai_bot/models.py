@@ -5,6 +5,9 @@ from typing import Optional, List
 class ChatRequest(BaseModel):
     student_id: int
     message: Optional[str] = None  # None = open chatbot (dashboard mode)
+    name: Optional[str] = None
+    trade: Optional[str] = None
+    career_goal: Optional[str] = None
 
 
 class RecommendedTopic(BaseModel):

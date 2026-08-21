@@ -84,6 +84,12 @@ async def chat(req: ChatRequest):
     # 1. Fetch profile
     try:
         profile = fetch_student_profile(req.student_id)
+        if req.name:
+            profile["name"] = req.name
+        if req.trade:
+            profile["trade"] = req.trade
+        if req.career_goal:
+            profile["career_goal"] = req.career_goal
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
